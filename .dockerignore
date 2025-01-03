@@ -1,0 +1,10 @@
+/.git
+/.idea
+/.next
+/.run
+/build
+/coverage
+/data
+/dist
+/node_modules
+/Dockerfile
