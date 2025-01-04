@@ -7,6 +7,8 @@ import { getWebSession } from "../../lib/websession";
 import { getDbUser, updateDbUserCredentials, User } from "../../lib/db";
 import { WebSessionData } from "../../lib/state";
 import { IronSession } from "iron-session";
+import { EmailNotAllowed } from "../../lib/filters";
+import { getCookie, setCookie } from "cookies-next/server";
 
 export function getAuthUrl(req: express.Request): string {
     const thisUrl = getUrlNoQuery(req);
@@ -62,9 +64,29 @@ async function handleAuthResponse(req: express.Request, res: express.Response) {
             res.redirect(307, "/");
         }
     } catch (err) {
-        // something went wrong
-        console.error((err instanceof Error && err.message) || "Error handling auth response");
         await session.save();
+
+        if (err instanceof EmailNotAllowed) {
+            const COOKIE_NAME = "show_notifications";
+            const value = [];
+            const existingValue = await getCookie(COOKIE_NAME, { req, res });
+            try {
+                if (existingValue !== undefined) {
+                    const parsed = JSON.parse(existingValue);
+                    if (_.isArray(parsed)) {
+                        value.push(...parsed);
+                    }
+                }
+            } catch (err) {
+                console.warn(`Error reading cookie ${ COOKIE_NAME }, ignoring: ${ err }`);
+            }
+            value.push("Sorry, email address `" + err.email + "` is not allowed to login");
+            await setCookie(COOKIE_NAME, JSON.stringify(value), { req, res });
+        } else {
+            // something went wrong
+            console.error((err instanceof Error && err.message) || "Error handling auth response");
+        }
+
         res.redirect(307, "/");
     }
 }

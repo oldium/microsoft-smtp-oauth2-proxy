@@ -17,6 +17,7 @@ import { LogLevel } from "@azure/msal-common";
 import { WebSessionData } from "./state.js";
 import { cryptoRandomStringAsync } from "crypto-random-string";
 import { ICachePlugin } from "@azure/msal-common/node";
+import { applyFilters } from "./filters";
 
 type MicrosoftAppRegistration = { id: string; secret: string };
 
@@ -215,6 +216,11 @@ export async function exchangeForCredentials(
     const uid = idTokenClaims.oid;
     const email = idTokenClaims.email ?? await getEmail(authResult.accessToken);
     const username = authResult.account!.username!;
+
+    if (user === undefined) {
+        // New user - check if the email is allowed. Throws if not
+        applyFilters(email, config.filters);
+    }
 
     console.info(`User ${username} with email ${email} logged in`);
 

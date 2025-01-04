@@ -7,6 +7,7 @@ import yn from "yn";
 import path from "node:path";
 import dns from "node:dns/promises";
 import { isIP } from "node:net";
+import { createFilter, DEFAULT_RULES_ORDER, Filter, FilterType, RuleSet } from "./filters";
 
 export type MicrosoftAppRegistration = { id: string; secret: string };
 
@@ -69,6 +70,7 @@ export type Config = {
         all: Record<string, MicrosoftAppRegistration>,
         default: MicrosoftAppRegistration,
     },
+    filters: RuleSet,
     smtp: SmtpOptions,
     http: Http,
     session: Session,
@@ -264,8 +266,20 @@ const session: Session = {
 
 const db: string = _.isEmpty(process.env.SQLITE_PATH) ? "data/db.sqlite" : process.env.SQLITE_PATH!;
 
+// Read filters
+const rulesOrder = _.isEmpty(process.env.RULES_ORDER)
+    ? DEFAULT_RULES_ORDER
+    : process.env.RULES_ORDER!.split(",").map((rule) => rule.trim()).filter(Boolean) as FilterType[];
+const rules = (await Promise.all(DEFAULT_RULES_ORDER.map(async (rule): Promise<[FilterType, Filter] | null> => {
+    const value = process.env[rule];
+    return value !== undefined ? [rule, await createFilter(rule, value)] : null;
+}))).filter(value => value !== null);
+const ruleSet = _.fromPairs(rules) as { [key in FilterType]: Filter };
+const filters: RuleSet = { ...ruleSet, order: rulesOrder };
+
 const config: Config = {
     apps,
+    filters,
     smtp: smtpOptions,
     http,
     session,

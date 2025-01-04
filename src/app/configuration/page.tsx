@@ -2,7 +2,6 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import { LogOut, MailX, Server, } from "lucide-react";
-import toast from "react-hot-toast";
 import UserDto from "../../../dto/user_dto";
 import ReloadButton from "../components/reload_button";
 import ConfigItem from "../components/config_item";
@@ -10,6 +9,7 @@ import { useRouter } from "next/navigation";
 import _ from "lodash";
 import UrlActionDto from "../../../dto/url_action_dto";
 import ConfigItemRows from "../components/config_item_rows";
+import { toast } from "../components/toaster";
 
 export default function Configuration() {
     const portInfo = {
@@ -36,10 +36,10 @@ export default function Configuration() {
                     const res = await fetch("/api/user", { cache: "no-store" });
                     const data: UserDto = await res.json();
                     if (res.status === 401) {
-                        toast("Session expired, please log in again", { icon: 'ℹ️' });
+                        toast("info", "Session expired, please log in again");
                         router.push("/");
                     } else if (!res.ok) {
-                        toast.error("An error occurred. Please try again later.");
+                        toast("error", "An error occurred. Please try again later.");
                     } else {
                         setConfig({
                             email: data.email,
@@ -49,7 +49,7 @@ export default function Configuration() {
                         setPassword(data.smtp_password);
                     }
                 } catch {
-                    toast.error("An error occurred. Please try again later.");
+                    toast("error", "An error occurred. Please try again later.");
                     setError(true);
                 } finally {
                     setLoading(false);
@@ -70,13 +70,13 @@ export default function Configuration() {
             const data: UserDto = await res.json();
             if (!res.ok) {
                 if (res.status == 401) {
-                    toast("Session expired, please log in again", { icon: 'ℹ️' });
+                    toast("info", "Session expired, please log in again");
                     router.push("/");
                 } else {
-                    toast.error("An error occurred. Please try again later.");
+                    toast("error", "An error occurred. Please try again later.");
                 }
             } else {
-                //toast.success("Password changed successfully");
+                toast("success", "Password changed successfully");
                 setPassword(data.smtp_password);
                 const newConfig = {
                     email: data.email,
@@ -88,7 +88,7 @@ export default function Configuration() {
                 }
             }
         } catch {
-            toast.error("An error occurred. Please try again later.");
+            toast("error", "An error occurred. Please try again later.");
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [password, config]);
@@ -107,10 +107,10 @@ export default function Configuration() {
             } else if (res.status === 401) {
                 router.push("/");
             } else {
-                toast.error("An error occurred. Please try again later.");
+                toast("error", "An error occurred. Please try again later.");
             }
         } catch {
-            toast.error("An error occurred. Please try again later.");
+            toast("error", "An error occurred. Please try again later.");
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -129,10 +129,10 @@ export default function Configuration() {
             } else if (res.status == 401) {
                 router.push("/");
             } else {
-                toast.error("An error occurred. Please try again later.");
+                toast("error", "An error occurred. Please try again later.");
             }
         } catch {
-            toast.error("An error occurred. Please try again later.");
+            toast("error", "An error occurred. Please try again later.");
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

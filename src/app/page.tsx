@@ -1,19 +1,20 @@
 import React from "react";
-import { AlertTriangle, ArrowRight, Server, ShieldAlert } from "lucide-react";
+import { AlertTriangle, ArrowRight, Server, ShieldX } from "lucide-react";
 import GitHub from "./icons/github";
 import Microsoft from "./icons/microsoft";
 import yn from "yn";
 
-export default async function Home() {
+export default function Home() {
     const portInfo = {
         hasTls: yn(process.env.NEXT_PUBLIC_HAS_TLS),
         hasStartTls: yn(process.env.NEXT_PUBLIC_HAS_STARTTLS),
     };
+
     return (
         <>
             <div className="mt-16 bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8">
                 <div className="flex items-start space-x-4">
-                    <ShieldAlert className="h-6 w-6 text-red-600 dark:text-red-500 flex-shrink-0 mt-1"/>
+                    <ShieldX className="h-6 w-6 text-red-600 dark:text-red-500 flex-shrink-0 mt-1"/>
                     <div className="pr-10">
                         <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-200 mb-4">
                             The Issue

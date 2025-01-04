@@ -17,11 +17,13 @@ import dns from "node:dns/promises";
 import assert from "node:assert";
 import { formatAddressPort } from "./smtp/lib/address";
 import { Waitable } from "./smtp/lib/waitable";
+import { refreshFilters } from "./lib/filters";
 
 // noinspection SpellCheckingInspection
 const terminationWaitable = new Waitable();
 process.on("SIGINT", terminationWaitable.set.bind(terminationWaitable, null));
 process.on("SIGTERM", terminationWaitable.set.bind(terminationWaitable, null));
+process.on("SIGHUP", refreshFilters);
 
 if (!config.development) {
     const nextConfig = readFileSync("./.next/required-server-files.json").toString("utf-8");

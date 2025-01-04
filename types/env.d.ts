@@ -27,5 +27,22 @@ declare namespace NodeJS {
         NEXT_PUBLIC_HAS_TLS?: string;
         NEXT_PUBLIC_HAS_STARTTLS?: string;
         NEXT_PUBLIC_COUNT_PORTS?: string;
+        DISALLOWED_EMAILS_LIST?: string;
+        DISALLOWED_EMAILS_LIST_FILE?: string;
+        DISALLOWED_EMAILS_REGEX?: string;
+        DISALLOWED_EMAILS_REGEX_FILE?: string;
+        DISALLOWED_DOMAINS_LIST?: string;
+        DISALLOWED_DOMAINS_LIST_FILE?: string;
+        DISALLOWED_DOMAINS_REGEX?: string;
+        DISALLOWED_DOMAINS_REGEX_FILE?: string;
+        ALLOWED_EMAILS_LIST?: string;
+        ALLOWED_EMAILS_LIST_FILE?: string;
+        ALLOWED_EMAILS_REGEX?: string;
+        ALLOWED_EMAILS_REGEX_FILE?: string;
+        ALLOWED_DOMAINS_LIST?: string;
+        ALLOWED_DOMAINS_LIST_FILE?: string;
+        ALLOWED_DOMAINS_REGEX?: string;
+        ALLOWED_DOMAINS_REGEX_FILE?: string;
+        RULES_ORDER?: string;
     }
 }
