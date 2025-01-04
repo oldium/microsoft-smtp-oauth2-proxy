@@ -5,14 +5,14 @@ import UserDto from "../../../dto/user_dto";
 
 export function getConnectionDetails(): Pick<UserDto, "smtp_host" | "smtp_ports"> {
     const ports = [];
-    if (config.smtp.server.smtp) {
-        ports.push({port: config.smtp.server.smtp.port, security: "TLS"});
+    if (config.smtp.server.smtp && config.smtp.server.smtp.port) {
+        ports.push({ port: config.smtp.server.smtp.port, security: "TLS" });
     }
-    if (config.smtp.server.smtpTls && config.smtp.server.smtpTls.port !== config.smtp.server.smtp?.port) {
-        ports.push({port: config.smtp.server.smtpTls.port, security: "TLS"});
+    if (config.smtp.server.smtpTls && config.smtp.server.smtpTls.port && config.smtp.server.smtpTls.port !== config.smtp.server.smtp?.port) {
+        ports.push({ port: config.smtp.server.smtpTls.port, security: "TLS" });
     }
-    if (config.smtp.server.smtpStartTls) {
-        ports.push({port: config.smtp.server.smtpStartTls.port, security: "STARTTLS"});
+    if (config.smtp.server.smtpStartTls && config.smtp.server.smtpStartTls.port) {
+        ports.push({ port: config.smtp.server.smtpStartTls.port, security: "STARTTLS" });
     }
 
     return {
@@ -35,7 +35,7 @@ export default async function userHandler(req: express.Request, res: express.Res
         if (err instanceof UnauthorizedError) {
             res.status(401).json({ message: "Unauthorized" });
         } else {
-            console.error(`Error: ${(err instanceof Error && err.stack) || err}`);
+            console.error(`Error: ${ (err instanceof Error && err.stack) || err }`);
             res.status(500).json({ message: "Internal Server Error" });
         }
     }

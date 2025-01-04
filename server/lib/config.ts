@@ -21,12 +21,12 @@ export type Http = {
 };
 
 export type SmtpTcpServerOptions = {
-    port: number,
+    port?: number | undefined,
     serverOptions: TcpServerOptions,
 };
 
 export type SmtpTcpSecureServerOptions = {
-    port: number,
+    port?: number | undefined,
     serverOptions: TcpSecureServerOptions,
 };
 
@@ -116,8 +116,8 @@ function formatListenHosts(hosts: string | null): string[] {
 async function resolveListenHosts(hosts: string | null): Promise<string[] | null[]> {
     const hostsArray = (hosts?.split(",") ?? []).map((host) => host.trim());
     const hostsAddressesArray = (await Promise.all(hostsArray.map(async (host) => {
-            return (isIP(host) || _.isEmpty(host)) ? host : await dns.lookup(host, { all: true, order: "ipv4first" });
-        }))).flat();
+        return (isIP(host) || _.isEmpty(host)) ? host : await dns.lookup(host, { all: true, order: "ipv4first" });
+    }))).flat();
     let listenAddresses = Array.from(new Set<string>(
         hostsAddressesArray.map((address) => _.isString(address) ? address : address.address)));
     listenAddresses = listenAddresses.filter((address) => !_.isEmpty(address));
@@ -134,7 +134,7 @@ const smtpListenAddresses = await resolveListenHosts(smtpListenHostsString);
 const smtpTcpServerOptions: { smtp?: SmtpTcpServerOptions } = process.env.SMTP_PORT ?
     {
         smtp: {
-            port: parseInt(process.env.SMTP_PUBLIC_PORT ?? "465") || 465,
+            port: (process.env.SMTP_PUBLIC_PORT === "") ? undefined : (parseInt(process.env.SMTP_PUBLIC_PORT ?? "465") || 465),
             serverOptions: {
                 hosts: smtpListenHosts,
                 addresses: smtpListenAddresses,
@@ -142,10 +142,12 @@ const smtpTcpServerOptions: { smtp?: SmtpTcpServerOptions } = process.env.SMTP_P
             }
         }
     } : {};
-const smtpTcpTlsServerOptions: { smtpTls?: SmtpTcpSecureServerOptions } = withCertificates && process.env.SMTP_TLS_PORT ?
+const smtpTcpTlsServerOptions: {
+    smtpTls?: SmtpTcpSecureServerOptions
+} = withCertificates && process.env.SMTP_TLS_PORT ?
     {
         smtpTls: {
-            port: parseInt(process.env.SMTP_PUBLIC_TLS_PORT ?? "465") || 465,
+            port: (process.env.SMTP_PUBLIC_TLS_PORT === "") ? undefined : (parseInt(process.env.SMTP_PUBLIC_TLS_PORT ?? "465") || 465),
             serverOptions: {
                 addresses: smtpListenAddresses,
                 port: parseInt(process.env.SMTP_TLS_PORT) || 465,
@@ -153,10 +155,12 @@ const smtpTcpTlsServerOptions: { smtpTls?: SmtpTcpSecureServerOptions } = withCe
             }
         }
     } : {};
-const smtpTcpStartTlsServerOptions: { smtpStartTls?: SmtpTcpSecureServerOptions } = withCertificates && process.env.SMTP_STARTTLS_PORT ?
+const smtpTcpStartTlsServerOptions: {
+    smtpStartTls?: SmtpTcpSecureServerOptions
+} = withCertificates && process.env.SMTP_STARTTLS_PORT ?
     {
         smtpStartTls: {
-            port: parseInt(process.env.SMTP_PUBLIC_STARTTLS_PORT ?? "587") || 587,
+            port: (process.env.SMTP_PUBLIC_STARTTLS_PORT === "") ? undefined : (parseInt(process.env.SMTP_PUBLIC_STARTTLS_PORT ?? "587") || 587),
             serverOptions: {
                 addresses: smtpListenAddresses,
                 port: parseInt(process.env.SMTP_STARTTLS_PORT) || 587,
@@ -268,5 +272,11 @@ const config: Config = {
     db,
     development,
 };
+
+process.env.NEXT_PUBLIC_HAS_TLS = String((config.smtp.server.smtp?.port ?? config.smtp.server.smtpTls?.port) !== undefined);
+process.env.NEXT_PUBLIC_HAS_STARTTLS = String(config.smtp.server.smtpStartTls?.port !== undefined);
+process.env.NEXT_PUBLIC_COUNT_PORTS = String(
+    _.uniq([config.smtp.server.smtp?.port, config.smtp.server.smtpTls?.port, config.smtp.server.smtpStartTls?.port]
+        .filter(Boolean)).length);
 
 export default config;

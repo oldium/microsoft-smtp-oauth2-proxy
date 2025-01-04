@@ -18,6 +18,7 @@ import assert from "node:assert";
 import { formatAddressPort } from "./smtp/lib/address";
 import { Waitable } from "./smtp/lib/waitable";
 
+// noinspection SpellCheckingInspection
 const terminationWaitable = new Waitable();
 process.on("SIGINT", terminationWaitable.set.bind(terminationWaitable, null));
 process.on("SIGTERM", terminationWaitable.set.bind(terminationWaitable, null));
@@ -56,7 +57,7 @@ expressApp.use(async (req, res) => {
 });
 
 // Servers
-let listenHosts: (string | null)[] = [];
+const listenHosts: (string | null)[] = [];
 if (config.development) {
     // Resolve localhost to IPv4 and IPv6 when available
     const localhostAddress = await dns.lookup("localhost", { all: true, order: "ipv4first" });
@@ -69,8 +70,8 @@ if (config.development) {
 }
 
 // Start HTTP Server
-let httpServers: Server[] = [];
-let httpListenPromises: Promise<void>[] = [];
+const httpServers: Server[] = [];
+const httpListenPromises: Promise<void>[] = [];
 config.http.serverOptions.hosts?.forEach((host) => {
     const proto = config.http.secure ? "https" : "http";
     console.log(`> Starting ${ proto.toUpperCase() } server to listen at ${ proto }://${ host }:${ config.http.serverOptions.port } as ${

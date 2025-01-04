@@ -12,6 +12,10 @@ import UrlActionDto from "../../../dto/url_action_dto";
 import ConfigItemRows from "../components/config_item_rows";
 
 export default function Configuration() {
+    const portInfo = {
+        portCount: parseInt(process.env.NEXT_PUBLIC_COUNT_PORTS ?? "1"),
+    };
+
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
@@ -21,7 +25,7 @@ export default function Configuration() {
         smtpServer: string;
     }>({
         email: "",
-        smtpPorts: [{ port: "", security: "" }],
+        smtpPorts: new Array(portInfo.portCount).fill({ port: "", security: "" }),
         smtpServer: "",
     });
     const [password, setPassword] = useState("");

@@ -2,8 +2,13 @@ import React from "react";
 import { AlertTriangle, ArrowRight, Server, ShieldAlert } from "lucide-react";
 import GitHub from "./icons/github";
 import Microsoft from "./icons/microsoft";
+import yn from "yn";
 
-export default function Home() {
+export default async function Home() {
+    const portInfo = {
+        hasTls: yn(process.env.NEXT_PUBLIC_HAS_TLS),
+        hasStartTls: yn(process.env.NEXT_PUBLIC_HAS_STARTTLS),
+    };
     return (
         <>
             <div className="mt-16 bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8">
@@ -68,17 +73,22 @@ export default function Home() {
                             </li>
                         </ul>
                         <p className="leading-relaxed mt-4">
-                            The current configuration supports the following protocols:
+                            The current configuration exposes the following protocols:
                         </p>
                         <ul className="leading-relaxed list-disc pl-6 mt-4">
-                            { (process.env.SMTP_PORT || process.env.SMTP_TLS_PORT) ? (
+                            { portInfo.hasTls ? (
                                 <li>
                                     SMTP with SSL/TLS
                                 </li>
                             ) : null }
-                            { process.env.SMTP_STARTTLS_PORT ? (
+                            { portInfo.hasStartTls ? (
                                 <li>
                                     SMTP with STARTTLS
+                                </li>
+                            ) : null }
+                            { (!portInfo.hasTls && !portInfo.hasStartTls) ? (
+                                <li>
+                                    No SMTP ports are exposed
                                 </li>
                             ) : null }
                         </ul>

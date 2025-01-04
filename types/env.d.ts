@@ -24,5 +24,8 @@ declare namespace NodeJS {
         HTTP_PORT?: string;
         HTTPS_KEY_FILE?: string;
         HTTPS_CERT_FILE?: string;
+        NEXT_PUBLIC_HAS_TLS?: string;
+        NEXT_PUBLIC_HAS_STARTTLS?: string;
+        NEXT_PUBLIC_COUNT_PORTS?: string;
     }
 }
