@@ -158,22 +158,52 @@ The `swaks` tool is a powerful SMTP client, which can be used to test the SMTP
 server. For installation see project [web pages][swaks-web], for usage see
 generated [help documentation][swaks-doc].
 
-The following command sends an email:
+The following command sends an email via an unprotected port:
 
 ```bash
 swaks --auth PLAIN --auth-user <email> --auth-password <password> \
-  --server localhost --port <port> --ehlo "[127.0.0.1]" \
+  --server localhost --port <port> \
+  --ehlo "[127.0.0.1]" \
   --from <email> --to <email> \
   --header "Subject: Test email" --body "This is a test email."
 ```
 
-For the `<port>` value use `SMTP_PORT` value from the configuration (or other
-configured port number like `SMTP_TLS_PORT` or `SMTP_STARTTLS_PORT`). The
-`<email>` is purely the email address used for authentication, `<password>` is
-the password. The `<from>` and `<to>` are the email addresses of the sender and
-the receiver, respectively, without the name part. If you want to use the name
-part, additionally supply the header `From:` and/or `To:` by using the
-`--header "From: User Name <email@example.com>"` format.
+For the `<port>` value use `SMTP_PORT` value from the configuration (if
+configured). The `<email>` is purely the email address used for authentication,
+`<password>` is the password. The `<from>` and `<to>` are the email addresses of
+the sender and the receiver, respectively, without the name part. If you want to
+use the name part, additionally supply the header `From:` and/or `To:` by using
+the `--header "From: User Name <email@example.com>"` format.
+
+To test SSL/TLS, use `SMTP_TLS_PORT` and the following options:
+
+```bash
+swaks --auth PLAIN --auth-user <email> --auth-password <password> \
+  --server localhost --port <port> \
+  --tls-on-connect --tls-sni smtp.example.com --tls-verify \
+  --ehlo "[127.0.0.1]" \
+  --from <email> --to <email> \
+  --header "Subject: Test email" --body "This is a test email."
+```
+
+The `--tls-sni` option controls which SSL certificate is requested (there is
+only one) and `--tls-verify` option checks the certificate. The
+`--tls-on-connect` option is used to start the SSL/TLS connection immediately.
+The rest of the options are the same as for the unprotected connection.
+
+To test STARTTLS, use `SMTP_STARTTLS_PORT` and the following options:
+
+```bash
+swaks --auth PLAIN --auth-user <email> --auth-password <password> \
+  --server localhost --port <port> \
+  --tls --tls-sni smtp.example.com --tls-verify \
+  --ehlo "[127.0.0.1]" \
+  --from <email> --to <email> \
+  --header "Subject: Test email" --body "This is a test email."
+```
+
+The `--tls` option is used to start the STARTTLS connection immediately, the
+rest of the options are the same as for the SSL/TLS connection.
 
 > [!NOTE]
 > The `--ehlo` option is used to set the SMTP `EHLO` string, which is used to
