@@ -9,7 +9,7 @@ export default async function logoutHandler(req: express.Request, res: express.R
         session.destroy();
 
         if (uid) {
-            res.json({ message: "Logged-out", url: "/" } as UrlActionDto);
+            res.json({ message: "Logged-out", url: "/" } satisfies UrlActionDto);
         } else {
             res.status(401).json({ message: "Unauthorized" });
         }

@@ -196,5 +196,5 @@ export async function getDbExpiredUsers(): Promise<User[]> {
             cache: user.cache,
             expires: _.isNil(user.expires_at) ? undefined : new Date(user.expires_at * 1000)
         },
-    } as User));
+    } satisfies User));
 }

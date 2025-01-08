@@ -16,7 +16,7 @@ export default async function cancelHandler(req: express.Request, res: express.R
 
         await deleteDbUser(user.uid);
 
-        res.json({ message: "Cancelled", url: "/" } as UrlActionDto);
+        res.json({ message: "Cancelled", url: "/" } satisfies UrlActionDto);
     } catch (err) {
         if (err instanceof UnauthorizedError) {
             res.status(401).json({ message: "Unauthorized" });
