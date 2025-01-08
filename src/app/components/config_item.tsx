@@ -5,14 +5,14 @@ import CopyButton from "./copy_button";
 type ConfigItemProps = {
     label: string;
     value: string | number;
-    loading: boolean;
-    disabled: boolean;
+    loading?: boolean;
+    disabled?: boolean;
     children?: React.ReactNode;
 }
 
 export default memo(function ConfigItem(props: ConfigItemProps) {
     return <div
-        className="flex items-center p-4 rounded-lg bg-gray-100 dark:text-gray-200 dark:bg-gray-800">
+        className="flex items-center p-4 rounded-lg bg-gray-100 dark:text-gray-200 dark:bg-gray-800" aria-hidden={ !!props.loading }>
         <div className="flex-1">
             <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 uppercase">
                 { props.label }
@@ -24,10 +24,10 @@ export default memo(function ConfigItem(props: ConfigItemProps) {
             </div>
         </div>
         { props.children }
-        <CopyButton value={ props.value } disabled={ props.disabled }/>
+        <CopyButton value={ props.value } disabled={ !!props.disabled }/>
     </div>;
 }, (prevProps, nextProps) => {
     return (prevProps.value === nextProps.value
-        && prevProps.loading === nextProps.loading
-        && prevProps.disabled === nextProps.disabled);
+        && !!prevProps.loading === !!nextProps.loading
+        && !!prevProps.disabled === !!nextProps.disabled);
 });

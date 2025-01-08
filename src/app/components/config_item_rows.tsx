@@ -7,8 +7,8 @@ function ConfigItemRows<T>(props: {
     rows: T[],
     valuesMapper: (row: T) => (number | string)[],
     gridClassName: string,
-    disabled: boolean,
-    loading: boolean,
+    disabled?: boolean,
+    loading?: boolean,
 }) {
     return (<> {
         props.rows.map(props.valuesMapper).map((values, index) =>
@@ -18,10 +18,10 @@ function ConfigItemRows<T>(props: {
                              gridClassName={ props.gridClassName }
             />)
     } </>);
-};
+}
 
 export default memo(ConfigItemRows, (prevProps, nextProps) => {
     return (_.isEqual(prevProps.rows, nextProps.rows)
-        && prevProps.loading === nextProps.loading
-        && prevProps.disabled === nextProps.disabled);
+        && !!prevProps.loading === !!nextProps.loading
+        && !!prevProps.disabled === !!nextProps.disabled);
 }) as typeof ConfigItemRows;

@@ -287,10 +287,18 @@ const config: Config = {
     development,
 };
 
-process.env.NEXT_PUBLIC_HAS_TLS = String((config.smtp.server.smtp?.port ?? config.smtp.server.smtpTls?.port) !== undefined);
-process.env.NEXT_PUBLIC_HAS_STARTTLS = String(config.smtp.server.smtpStartTls?.port !== undefined);
-process.env.NEXT_PUBLIC_COUNT_PORTS = String(
-    _.uniq([config.smtp.server.smtp?.port, config.smtp.server.smtpTls?.port, config.smtp.server.smtpStartTls?.port]
-        .filter(Boolean)).length);
+// Prepare environment variables for web
+const portList = _.uniqBy([
+    [config.smtp.server.smtp?.port, "TLS"],
+    [config.smtp.server.smtpTls?.port, "TLS"],
+    [config.smtp.server.smtpStartTls?.port, "STARTTLS"],
+].filter(([port]) => port !== undefined), _.first) as [number, string][];
+
+process.env.WEB_HAS_TLS = String((config.smtp.server.smtp?.port ?? config.smtp.server.smtpTls?.port) !== undefined);
+process.env.WEB_HAS_STARTTLS = String(config.smtp.server.smtpStartTls?.port !== undefined);
+process.env.WEB_SMTP_SERVER = config.smtp.server.host;
+process.env.WEB_COUNT_PORTS = String(portList.length);
+process.env.WEB_PORT_LIST = portList.map(([port]) => port).join(",");
+process.env.WEB_SECURITY_LIST = portList.map(([, security]) => security).join(",");
 
 export default config;

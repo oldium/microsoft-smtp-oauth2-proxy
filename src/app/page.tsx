@@ -2,14 +2,11 @@ import React from "react";
 import { AlertTriangle, ArrowRight, Server, ShieldX } from "lucide-react";
 import GitHub from "./icons/github";
 import Microsoft from "./icons/microsoft";
-import yn from "yn";
+import { ServerProtoConfig } from "./components/server_proto_config";
+
+export const dynamic = "force-dynamic";
 
 export default function Home() {
-    const portInfo = {
-        hasTls: yn(process.env.NEXT_PUBLIC_HAS_TLS),
-        hasStartTls: yn(process.env.NEXT_PUBLIC_HAS_STARTTLS),
-    };
-
     return (
         <>
             <div className="mt-16 bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8">
@@ -77,21 +74,7 @@ export default function Home() {
                             The current configuration exposes the following protocols:
                         </p>
                         <ul className="leading-relaxed list-disc pl-6 mt-4">
-                            { portInfo.hasTls ? (
-                                <li>
-                                    SMTP with SSL/TLS
-                                </li>
-                            ) : null }
-                            { portInfo.hasStartTls ? (
-                                <li>
-                                    SMTP with STARTTLS
-                                </li>
-                            ) : null }
-                            { (!portInfo.hasTls && !portInfo.hasStartTls) ? (
-                                <li>
-                                    No SMTP ports are exposed
-                                </li>
-                            ) : null }
+                            <ServerProtoConfig />
                         </ul>
                     </div>
                 </div>

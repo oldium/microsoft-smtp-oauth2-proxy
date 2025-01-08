@@ -3,7 +3,6 @@ import crypto from "node:crypto";
 import { getWebSession, getWebSessionUser, UnauthorizedError } from "../../lib/websession";
 import express from "express";
 import UserDto from "../../../dto/user_dto";
-import { getConnectionDetails } from "./user_route";
 
 export default async function resetHandler(req: express.Request, res: express.Response) {
     try {
@@ -18,8 +17,7 @@ export default async function resetHandler(req: express.Request, res: express.Re
             res.json({
                 email: updatedUser.email,
                 smtp_password: updatedUser.smtpPassword,
-                ...getConnectionDetails(),
-            } as UserDto);
+            } satisfies UserDto);
         } else {
             res.status(500).json({ message: 'Internal Server Error' });
         }

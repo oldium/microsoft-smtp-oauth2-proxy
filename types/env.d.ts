@@ -24,9 +24,12 @@ declare namespace NodeJS {
         HTTP_PORT?: string;
         HTTPS_KEY_FILE?: string;
         HTTPS_CERT_FILE?: string;
-        NEXT_PUBLIC_HAS_TLS?: string;
-        NEXT_PUBLIC_HAS_STARTTLS?: string;
-        NEXT_PUBLIC_COUNT_PORTS?: string;
+        WEB_HAS_TLS?: string;
+        WEB_HAS_STARTTLS?: string;
+        WEB_COUNT_PORTS?: string;
+        WEB_SMTP_SERVER?: string;
+        WEB_PORT_LIST?: string;
+        WEB_SECURITY_LIST?: string;
         DISALLOWED_EMAILS_LIST?: string;
         DISALLOWED_EMAILS_LIST_FILE?: string;
         DISALLOWED_EMAILS_REGEX?: string;

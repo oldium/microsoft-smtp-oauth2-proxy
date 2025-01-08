@@ -5,8 +5,8 @@ import _ from "lodash";
 export default memo(function ConfigItemsLine(props: {
     labels: string[],
     values: (number | string)[],
-    disabled: boolean,
-    loading: boolean,
+    disabled?: boolean,
+    loading?: boolean,
     gridClassName: string,
 }) {
     return <div className={ `grid ${ props.gridClassName } gap-4 py-2` }>
@@ -18,6 +18,6 @@ export default memo(function ConfigItemsLine(props: {
     </div>;
 }, (prevProps, nextProps) => {
     return (_.isEqual(prevProps.values, nextProps.values)
-        && prevProps.loading === nextProps.loading
-        && prevProps.disabled === nextProps.disabled);
+        && !!prevProps.loading === !!nextProps.loading
+        && !!prevProps.disabled === !!nextProps.disabled);
 });
