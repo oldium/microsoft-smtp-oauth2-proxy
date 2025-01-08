@@ -3,6 +3,52 @@
 This is a [Next.js](https://nextjs.org) project providing a proxy server to
 allow connecting to Microsoft SMTP servers using basic authentication.
 
+Microsoft has disabled basic authentication for personal Outlook accounts on
+Microsoft Outlook SMTP servers in favor of OAuth 2.0. This change affects
+sending and forwarding emails from custom services and public ones like
+Gmail&apos;s <q>Send mail as</q> feature. Authenticating with basic
+authentication against the Outlook server like `smtp-mail.outlook.com` or
+`smtp.office365.com` results in the following error:
+
+> ```
+> 535 5.7.139 Authentication unsuccessful, basic authentication is disabled.
+> ```
+
+This project provides a SMTP proxy server that authenticates the client with
+username and password, but authenticates with OAuth 2.0 on Microsoft Outlook
+server. The proxy server supports the following features:
+
+* OAuth 2.0 authentication with Microsoft.
+* Sending emails using the SMTP protocol with the following extensions:
+  * [RFC 5321][rfc5321] SMTP protocol.
+  * [RFC 4616][rfc4616] Authentication using username and password with
+    `AUTH PLAIN`.
+  * [LOGIN SASL Mechanism draft][draft-murchison-sasl-login-00] Authentication
+    using username and password with `AUTH LOGIN`.
+  * [RFC 8314][rfc8314] SSL/TLS encryption
+  * [RFC 3207][rfc3207] SMTP `STARTTLS` extension.
+  * [RFC 2920][rfc2920] SMTP Pipelining extension.
+  * [RFC 3030][rfc3030] SMTP Chunking extension.
+  * All other extensions using standard SMTP messages supported by the target
+    SMTP server (the messages and replies are simply forwarded).
+
+[draft-murchison-sasl-login-00]: https://datatracker.ietf.org/doc/html/draft-murchison-sasl-login-00
+[rfc2920]: https://datatracker.ietf.org/doc/html/rfc2920
+[rfc3030]: https://datatracker.ietf.org/doc/html/rfc3030
+[rfc3207]: https://datatracker.ietf.org/doc/html/rfc3207
+[rfc4616]: https://datatracker.ietf.org/doc/html/rfc4616
+[rfc5321]: https://datatracker.ietf.org/doc/html/rfc5321
+[rfc8314]: https://datatracker.ietf.org/doc/html/rfc8314
+
+## Look and Feel
+
+<p>
+<img src="https://github.com/oldium/microsoft-smtp-oauth2-proxy/raw/master/doc/images/main_page.jpeg" alt="Main Page" style="width: 250px;">
+<img src="https://github.com/oldium/microsoft-smtp-oauth2-proxy/raw/master/doc/images/config_page.jpeg" alt="Configuration Page" style="width: 250px;">
+</p>
+
+Dark mode is supported 🎉.
+
 ## Quick Start
 
 This project is developed with Node.js version 23, Next.js 15.1 and React 19. It
