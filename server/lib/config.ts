@@ -13,7 +13,8 @@ export type MicrosoftAppRegistration = { id: string; secret: string };
 
 export type Certificate = { cert: Buffer; key: Buffer } | { cert?: undefined; key?: undefined };
 
-export type TcpServerOptions = { hosts?: string[], addresses: string[] | null[], port?: number | undefined };
+export type Addresses = [null] | [NonNullable<string>, ...NonNullable<string>[]];
+export type TcpServerOptions = { hosts?: string[], addresses: Addresses, port?: number | number[] | undefined };
 export type TcpSecureServerOptions = TcpServerOptions & Certificate;
 
 export type Http = {
@@ -22,12 +23,10 @@ export type Http = {
 };
 
 export type SmtpTcpServerOptions = {
-    port?: number | undefined,
     serverOptions: TcpServerOptions,
 };
 
 export type SmtpTcpSecureServerOptions = {
-    port?: number | undefined,
     serverOptions: TcpSecureServerOptions,
 };
 
@@ -43,6 +42,7 @@ export type SmtpInterceptorOptions = {
         secured?: boolean,
     },
     timeouts: SmtpTimeouts,
+    protocolInspectionDelayMs: number,
     maxLineLength: number,
     greetingName: string,
 };
@@ -53,6 +53,7 @@ export type SmtpServerOptions = {
     smtp?: SmtpTcpServerOptions,
     smtpTls?: SmtpTcpSecureServerOptions,
     smtpStartTls?: SmtpTcpSecureServerOptions,
+    smtpAutoTls?: SmtpTcpSecureServerOptions,
 }
 
 export type SmtpOptions = {
@@ -115,7 +116,7 @@ function formatListenHosts(hosts: string | null): string[] {
     return Array.from(new Set<string>(hostsArray)).filter((host) => !_.isEmpty(host) && !isIP(host));
 }
 
-async function resolveListenHosts(hosts: string | null): Promise<string[] | null[]> {
+async function resolveListenHosts(hosts: string | null): Promise<Addresses> {
     const hostsArray = (hosts?.split(",") ?? []).map((host) => host.trim());
     const hostsAddressesArray = (await Promise.all(hostsArray.map(async (host) => {
         return (isIP(host) || _.isEmpty(host)) ? host : await dns.lookup(host, { all: true, order: "ipv4first" });
@@ -127,45 +128,59 @@ async function resolveListenHosts(hosts: string | null): Promise<string[] | null
         // @ts-expect-error catch-all network address is represented here by single null value
         listenAddresses.push(null);
     }
-    return listenAddresses;
+    return listenAddresses as Addresses;
+}
+
+function parsePortList(ports: string | undefined, defaultPort?: number): number[] {
+    return (_.isEmpty(ports)
+            ? (defaultPort ? [defaultPort] : [])
+            : ports!.split(",").map((port) => parseInt(port.trim())).filter(Boolean)
+    );
 }
 
 const smtpListenHostsString = _.isEmpty(process.env.SMTP_HOST) ? listenDefaultHosts : process.env.SMTP_HOST!;
 const smtpListenHosts = formatListenHosts(smtpListenHostsString);
 const smtpListenAddresses = await resolveListenHosts(smtpListenHostsString);
-const smtpTcpServerOptions: { smtp?: SmtpTcpServerOptions } = process.env.SMTP_PORT ?
+const smtpTcpServerPorts = parsePortList(process.env.SMTP_PORT);
+const smtpTcpServerOptions: Pick<SmtpServerOptions, "smtp"> = smtpTcpServerPorts.length ?
     {
         smtp: {
-            port: (process.env.SMTP_PUBLIC_PORT === "") ? undefined : (parseInt(process.env.SMTP_PUBLIC_PORT ?? "465") || 465),
             serverOptions: {
                 hosts: smtpListenHosts,
                 addresses: smtpListenAddresses,
-                port: parseInt(process.env.SMTP_PORT) || 25,
+                port: smtpTcpServerPorts,
             }
         }
     } : {};
-const smtpTcpTlsServerOptions: {
-    smtpTls?: SmtpTcpSecureServerOptions
-} = withCertificates && process.env.SMTP_TLS_PORT ?
+const smtpTcpTlsServerPorts = parsePortList(process.env.SMTP_TLS_PORT);
+const smtpTcpTlsServerOptions: Pick<SmtpServerOptions, "smtpTls"> = withCertificates && smtpTcpTlsServerPorts.length ?
     {
         smtpTls: {
-            port: (process.env.SMTP_PUBLIC_TLS_PORT === "") ? undefined : (parseInt(process.env.SMTP_PUBLIC_TLS_PORT ?? "465") || 465),
             serverOptions: {
                 addresses: smtpListenAddresses,
-                port: parseInt(process.env.SMTP_TLS_PORT) || 465,
+                port: smtpTcpTlsServerPorts,
                 ...smtpCertificate
             }
         }
     } : {};
-const smtpTcpStartTlsServerOptions: {
-    smtpStartTls?: SmtpTcpSecureServerOptions
-} = withCertificates && process.env.SMTP_STARTTLS_PORT ?
+const smtpTcpStartTlsServerPorts = parsePortList(process.env.SMTP_STARTTLS_PORT);
+const smtpTcpStartTlsServerOptions: Pick<SmtpServerOptions, "smtpStartTls"> = withCertificates && smtpTcpStartTlsServerPorts.length ?
     {
         smtpStartTls: {
-            port: (process.env.SMTP_PUBLIC_STARTTLS_PORT === "") ? undefined : (parseInt(process.env.SMTP_PUBLIC_STARTTLS_PORT ?? "587") || 587),
             serverOptions: {
                 addresses: smtpListenAddresses,
-                port: parseInt(process.env.SMTP_STARTTLS_PORT) || 587,
+                port: smtpTcpStartTlsServerPorts,
+                ...smtpCertificate,
+            }
+        }
+    } : {};
+const smtpTcpAutoTlsServerPorts = parsePortList(process.env.SMTP_AUTOTLS_PORT);
+const smtpTcpAutoTlsServerOptions: Pick<SmtpServerOptions, "smtpAutoTls"> = withCertificates && smtpTcpAutoTlsServerPorts.length ?
+    {
+        smtpAutoTls: {
+            serverOptions: {
+                addresses: smtpListenAddresses,
+                port: smtpTcpAutoTlsServerPorts,
                 ...smtpCertificate,
             }
         }
@@ -181,6 +196,7 @@ const smtpInterceptor: { interceptor: SmtpInterceptorOptions } = {
         timeouts: {
             clientMs: 300000,
         },
+        protocolInspectionDelayMs: parseInt(process.env.SMTP_PROTOCOL_INSPECTION_DELAY_MS || "3000") || 3000,
         maxLineLength: 12288,   // RFC 4954, section 4
         greetingName: _.isEmpty(process.env.SMTP_GREETING_NAME) ? process.env.SMTP_PUBLIC_HOST! : process.env.SMTP_GREETING_NAME!,
     }
@@ -191,6 +207,7 @@ const smtpServerOptions: { server: SmtpServerOptions } = {
         ...smtpTcpServerOptions,
         ...smtpTcpTlsServerOptions,
         ...smtpTcpStartTlsServerOptions,
+        ...smtpTcpAutoTlsServerOptions,
     },
 };
 
@@ -219,12 +236,13 @@ const httpsCertificate: Certificate =
 const httpListenHostsString = _.isEmpty(process.env.HTTP_HOST) ? smtpListenHostsString : process.env.HTTP_HOST!;
 const httpListenHosts = formatListenHosts(smtpListenHostsString);
 const httpListenAddresses = (httpListenHostsString === smtpListenHostsString) ? _.clone(smtpListenAddresses) : await resolveListenHosts(httpListenHostsString);
+const httpListenPorts = parsePortList(process.env.HTTP_PORT, 3000);
 const http: Http = {
     secure: withHttps,
     serverOptions: {
         hosts: httpListenHosts,
         addresses: httpListenAddresses,
-        port: parseInt(process.env.HTTP_PORT ?? "3000") || 3000,
+        port: httpListenPorts,
         ...httpsCertificate
     }
 }
@@ -288,17 +306,31 @@ const config: Config = {
 };
 
 // Prepare environment variables for web
-const portList = _.uniqBy([
-    [config.smtp.server.smtp?.port, "TLS"],
-    [config.smtp.server.smtpTls?.port, "TLS"],
-    [config.smtp.server.smtpStartTls?.port, "STARTTLS"],
-].filter(([port]) => port !== undefined), _.first) as [number, string][];
+const smtpPublicTlsPorts: number[] = (process.env.SMTP_PUBLIC_TLS_PORT === "")
+    ? []
+    : ((smtpTcpServerPorts.length || smtpTcpTlsServerPorts.length || smtpTcpAutoTlsServerPorts.length)
+        ? _.uniq((process.env.SMTP_PUBLIC_TLS_PORT ?? "465").split(",")
+            .map((port) => parseInt(port.trim()))
+            .filter(Boolean))
+        : []);
+const smtpPublicStartTlsPorts: number[] = (process.env.SMTP_PUBLIC_STARTTLS_PORT === "")
+    ? []
+    : ((smtpTcpStartTlsServerPorts.length || smtpTcpAutoTlsServerPorts.length)
+        ? _.uniq((process.env.SMTP_PUBLIC_STARTTLS_PORT ?? "587").split(",")
+            .map((port) => parseInt(port.trim()))
+            .filter(Boolean))
+        : []);
+const smtpPorts = _.chain([
+    ...smtpPublicTlsPorts.map((port): [number, string] => [port, "TLS"]),
+    ...smtpPublicStartTlsPorts.map((port): [number, string] => [port, "STARTTLS"])
+]).sortBy(([port]) => port)
+    .value();
 
-process.env.WEB_HAS_TLS = String((config.smtp.server.smtp?.port ?? config.smtp.server.smtpTls?.port) !== undefined);
-process.env.WEB_HAS_STARTTLS = String(config.smtp.server.smtpStartTls?.port !== undefined);
+process.env.WEB_HAS_TLS = String(smtpPublicTlsPorts?.length > 0);
+process.env.WEB_HAS_STARTTLS = String(smtpPublicStartTlsPorts.length > 0);
 process.env.WEB_SMTP_SERVER = config.smtp.server.host;
-process.env.WEB_COUNT_PORTS = String(portList.length);
-process.env.WEB_PORT_LIST = portList.map(([port]) => port).join(",");
-process.env.WEB_SECURITY_LIST = portList.map(([, security]) => security).join(",");
+process.env.WEB_COUNT_PORTS = String(smtpPorts.length);
+process.env.WEB_TLS_PORT_LIST = smtpPublicTlsPorts.join(",");
+process.env.WEB_STARTTLS_PORT_LIST = smtpPublicStartTlsPorts.join(",");
 
 export default config;

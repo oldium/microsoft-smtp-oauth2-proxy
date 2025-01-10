@@ -13,11 +13,13 @@ declare namespace NodeJS {
         SMTP_PORT?: string;
         SMTP_TLS_PORT?: string;
         SMTP_STARTTLS_PORT?: string;
+        // noinspection SpellCheckingInspection
+        SMTP_AUTOTLS_PORT?: string;
+        SMTP_PROTOCOL_INSPECTION_DELAY_MS?: string;
         SMTP_KEY_FILE?: string;
         SMTP_CERT_FILE?: string;
         SMTP_PUBLIC_HOST?: string;
         SMTP_GREETING_NAME?: string;
-        SMTP_PUBLIC_PORT?: string;
         SMTP_PUBLIC_TLS_PORT?: string;
         SMTP_PUBLIC_STARTTLS_PORT?: string;
         HTTP_HOST?: string;
@@ -28,8 +30,8 @@ declare namespace NodeJS {
         WEB_HAS_STARTTLS?: string;
         WEB_COUNT_PORTS?: string;
         WEB_SMTP_SERVER?: string;
-        WEB_PORT_LIST?: string;
-        WEB_SECURITY_LIST?: string;
+        WEB_TLS_PORT_LIST?: string;
+        WEB_STARTTLS_PORT_LIST?: string;
         DISALLOWED_EMAILS_LIST?: string;
         DISALLOWED_EMAILS_LIST_FILE?: string;
         DISALLOWED_EMAILS_REGEX?: string;

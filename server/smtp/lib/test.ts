@@ -1,4 +1,4 @@
-import { Server, Socket } from "net";
+import { connect, Server, Socket } from "net";
 import { sleep as libSleep } from "../../lib/sleep";
 import { expect } from "@jest/globals";
 import { tryCloseSocket, waitSecured } from "./socket";
@@ -6,7 +6,7 @@ import { AddressInfo } from "node:net";
 import { Certificate } from "../../lib/config";
 import { connect as tlsConnect, TLSSocket } from "tls";
 import { ConnectionOptions } from "node:tls";
-import { SmtpServer } from "../smtp_server";
+import { SmtpDetectedProtocol, SmtpServer } from "../smtp_server";
 import { Waitable } from "./waitable";
 
 /*
@@ -76,16 +76,26 @@ async function expectData(socket: Socket, data: string, partial: boolean = false
 
 export class SpySmtpServer extends SmtpServer {
     private ended = new Waitable(true);
-    protected async onConnection(socket: Socket | TLSSocket, secure: boolean): Promise<void> {
+    protected async onConnection(socket: Socket | TLSSocket, protocolPromise: Promise<SmtpDetectedProtocol | null>): Promise<void> {
         const address: AddressInfo = {
             address: socket.remoteAddress!,
             port: socket.remotePort!,
             family: socket.remoteFamily!
         };
-        console.info(`SMTP Test server: New ${ socket instanceof TLSSocket ? "secure" : secure ? "secured" : "unsecured" } connection`, address);
+
+        const initialProtocol = await Promise.any([protocolPromise, undefined]);
+        const initialConnectionType = await this.formatConnectionType(initialProtocol);
+        console.info(`SMTP Test server: New ${ initialConnectionType } connection`, address);
 
         try {
-            await this.intercept(socket, secure);
+            const protocol = await protocolPromise;
+            if (protocol !== null) {
+                const connectionType = await this.formatConnectionType(protocol);
+                if (initialConnectionType !== connectionType) {
+                    console.info(`Connection detected to be ${ connectionType }`, address);
+                }
+                await this.intercept(socket, protocol);
+            }
             this.ended.set();
             console.info("Connection closed cleanly", address);
         } catch (err) {
@@ -118,15 +128,10 @@ export class SpySmtpServer extends SmtpServer {
 }
 
 export class MockClient {
-    private socket: Socket | null = null;
+    private socket: Socket | TLSSocket | null = null;
     private error: Error | null = null;
 
-    private readonly host: string;
-    private readonly port: number;
-
-    constructor(host: string, port: number) {
-        this.host = host;
-        this.port = port;
+    constructor(private readonly host: string, private readonly port: number) {
     }
 
     public checkError() {
@@ -137,10 +142,7 @@ export class MockClient {
 
     public async connect() {
         const { promise: connectPromise, resolve, reject } = Promise.withResolvers<void>();
-        this.socket = new Socket();
-        this.socket.connect(this.port, this.host, () => {
-            resolve();
-        });
+        this.socket = connect({ host: this.host, port: this.port }, resolve);
         this.socket.once("error", reject);
         try {
             await connectPromise;
@@ -191,7 +193,7 @@ export class MockClient {
 
 export class MockServer {
     private server: Server | null = null;
-    private socket: Socket | null = null;
+    private socket: Socket | TLSSocket | null = null;
 
     private readonly host: string;
     private _port?: number;

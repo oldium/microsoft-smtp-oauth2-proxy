@@ -19,33 +19,42 @@ interface SmtpInterceptorEvents {
     "idle": () => void;
 }
 
+export enum SmtpClientSecureState {
+    Secured,
+    Unsecure,
+    ImplicitTls,
+}
+
 export class SmtpInterceptor extends TypedEmitter<SmtpInterceptorEvents> implements SmtpInterceptorApi {
     private readonly clientApi: SmtpClientApi;
     private readonly serverApi: SmtpServerApi;
     private readonly pipeline: Pipeline;
     private readonly protocol: SmtpProtocol;
-    private readonly starttlsCertificates?: Certificate;
+    private readonly certificates?: Certificate;
 
     private readonly onUserAuth: UserAuthorization;
 
+    private readonly clientImplicitUpgrade: boolean;
     private readonly closed = new Waitable(null);
 
-    constructor(clientSocket: Socket, clientSecured: boolean, options: SmtpInterceptorOptions, onUserAuth: UserAuthorization, starttlsCertificates?: Certificate) {
+    constructor(clientSocket: Socket, clientSecured: SmtpClientSecureState, options: SmtpInterceptorOptions, onUserAuth: UserAuthorization, certificates?: Certificate) {
         super();
 
-        this.starttlsCertificates = starttlsCertificates;
-        assert(clientSecured || (this.starttlsCertificates?.key && this.starttlsCertificates?.cert), "for insecure clients the STARTTLS certificates must be provided");
+        this.certificates = certificates;
+        assert(clientSecured !== SmtpClientSecureState.Unsecure || (this.certificates?.key && this.certificates?.cert), "for insecure clients the STARTTLS certificates must be provided");
+        assert(clientSecured !== SmtpClientSecureState.ImplicitTls || (this.certificates?.key && this.certificates?.cert), "for SSL/TLS clients the certificates must be provided");
 
         this.serverApi = new SmtpServerApi(options.target.host, options.target.port, !!options.target.secure, !!options.target.secured, options.maxLineLength);
         this.serverApi
             .once("close", this.handleServerClose.bind(this))
             .once("error", this.handleServerError.bind(this));
 
-        this.clientApi = new SmtpClientApi(clientSocket, clientSecured, options.maxLineLength);
+        this.clientApi = new SmtpClientApi(clientSocket, clientSecured === SmtpClientSecureState.Secured, options.maxLineLength);
         this.clientApi
             .once("close", this.handleClientClose.bind(this))
             .once("error", this.handleClientError.bind(this))
             .once("end", this.handleClientEnd.bind(this));
+        this.clientImplicitUpgrade = clientSecured === SmtpClientSecureState.ImplicitTls;
 
         this.pipeline = new Pipeline();
         this.pipeline.on("empty", () => this.emit("idle"));
@@ -68,6 +77,9 @@ export class SmtpInterceptor extends TypedEmitter<SmtpInterceptorEvents> impleme
     public async loop() {
         const loops: Promise<void>[] = [];
         try {
+            if (this.clientImplicitUpgrade) {
+                await this.clientApi.upgradeToTls(this.certificates);
+            }
             await this.serverApi.connect();
 
             const clientLoop = this.clientLoop();
@@ -180,7 +192,7 @@ export class SmtpInterceptor extends TypedEmitter<SmtpInterceptorEvents> impleme
     }
 
     public async clientUpgradeToTls() {
-        await this.clientApi.upgradeToTls(this.starttlsCertificates);
+        await this.clientApi.upgradeToTls(this.certificates);
     }
 
     public serverWrite(data: Buffer | string) {

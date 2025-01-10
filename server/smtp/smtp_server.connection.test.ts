@@ -41,6 +41,7 @@ async function constructSmtpServer(host: string, tlsState: TlsState, targetHost:
                 secured: targetTlsState === TlsState.FakeSecure
             },
             timeouts: { clientMs: 30000, },
+            protocolInspectionDelayMs: 3000,
             maxLineLength: 4096,
             greetingName,
         },

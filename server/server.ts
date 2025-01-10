@@ -2,7 +2,7 @@ import "localenv";
 import { createServer as createHttpServer, Server } from "http";
 import { createServer as createHttpsServer } from "https";
 import next from "next";
-import config from "./lib/config";
+import config, { TcpServerOptions } from "./lib/config";
 import { endDb, getDb } from "./lib/db";
 import { init as initMicrosoft, startRefreshJob } from "./lib/microsoft";
 import express from "express";
@@ -18,6 +18,7 @@ import assert from "node:assert";
 import { formatAddressPort } from "./smtp/lib/address";
 import { Waitable } from "./smtp/lib/waitable";
 import { refreshFilters } from "./lib/filters";
+import _ from "lodash";
 
 // noinspection SpellCheckingInspection
 const terminationWaitable = new Waitable();
@@ -71,64 +72,76 @@ if (config.development) {
     listenHosts.push(null);
 }
 
-// Start HTTP Server
-const httpServers: Server[] = [];
-const httpListenPromises: Promise<void>[] = [];
-config.http.serverOptions.hosts?.forEach((host) => {
-    const proto = config.http.secure ? "https" : "http";
-    console.log(`> Starting ${ proto.toUpperCase() } server to listen at ${ proto }://${ host }:${ config.http.serverOptions.port } as ${
-        config.development ? "development" : process.env.NODE_ENV }`);
-});
-config.http.serverOptions.addresses.forEach((address) => {
-    let httpServer;
-    if (config.http.secure) {
-        httpServer = createHttpsServer(config.http.serverOptions, expressApp);
-    } else {
-        httpServer = createHttpServer(expressApp);
-    }
-    const httpListening = new Promise<void>((resolve, reject) => {
-        httpServer.on("error", reject);
-        httpServer.listen(config.http.serverOptions.port ?? 0, ...(address ? [address] : []), () => {
-            const address = httpServer.address() as AddressInfo;
-            const proto = config.http.secure ? "https" : "http";
-            console.log(`> ${ proto.toUpperCase() } server listening at ${ proto }://${ formatAddressPort(address) } as ${
-                config.development ? "development" : process.env.NODE_ENV
-            }`);
-            httpServer.off("error", reject);
-            resolve();
+// Start HTTP Servers
+function printStartHttpListening(proto: string, serverOptions?: TcpServerOptions) {
+    serverOptions?.hosts?.forEach((host) => {
+        const ports = _.isArray(serverOptions.port) ? serverOptions.port : [serverOptions.port!];
+        ports.forEach((port) => {
+            console.log(`> Starting ${ proto.toUpperCase() } server to listen at ${ proto }://${ host }:${ port } as ${
+                config.development ? "development" : process.env.NODE_ENV }`);
         });
     });
-    httpServers.push(httpServer);
-    httpListenPromises.push(httpListening);
+}
+
+const httpServers: Server[] = [];
+const httpListenPromises: Promise<void>[] = [];
+printStartHttpListening(config.http.secure ? "https" : "http", config.http.serverOptions);
+config.http.serverOptions.addresses.forEach((address) => {
+    const ports = _.isArray(config.http.serverOptions.port) ? config.http.serverOptions.port : [config.http.serverOptions.port ?? 0];
+    ports.forEach((port) => {
+        let httpServer;
+        if (config.http.secure) {
+            httpServer = createHttpsServer(config.http.serverOptions, expressApp);
+        } else {
+            httpServer = createHttpServer(expressApp);
+        }
+        const httpListening = new Promise<void>((resolve, reject) => {
+            httpServer.on("error", reject);
+            httpServer.listen(port, ...(address ? [address] : []), () => {
+                const address = httpServer.address() as AddressInfo;
+                const proto = config.http.secure ? "https" : "http";
+                console.log(`> ${ proto.toUpperCase() } server listening at ${ proto }://${ formatAddressPort(address) } as ${
+                    config.development ? "development" : process.env.NODE_ENV
+                }`);
+                httpServer.off("error", reject);
+                resolve();
+            });
+        });
+        httpServers.push(httpServer);
+        httpListenPromises.push(httpListening);
+    });
 });
 
-config.smtp.server.smtp?.serverOptions.hosts?.forEach((host) => {
-    console.log(`> Starting SMTP server to listen at smtp://${ host }:${ config.smtp.server.smtp!.serverOptions.port }`);
-});
-config.smtp.server.smtpTls?.serverOptions.hosts?.forEach((host) => {
-    console.log(`> Starting SMTP server to listen at smtp+tls://${ host }:${ config.smtp.server.smtpTls!.serverOptions.port }`);
-});
-config.smtp.server.smtpStartTls?.serverOptions.hosts?.forEach((host) => {
-    console.log(`> Starting SMTP server to listen at smtp+starttls://${ host }:${ config.smtp.server.smtpStartTls!.serverOptions.port }`);
-});
-const smtpServer = createSmtpServer(config.smtp.interceptor, userAuth, config.smtp.server.smtp?.serverOptions, config.smtp.server.smtpTls?.serverOptions, config.smtp.server.smtpStartTls?.serverOptions);
+// Start SMTP Servers
+function printStartSmtpListening(proto: string, serverOptions?: TcpServerOptions) {
+    serverOptions?.hosts?.forEach((host) => {
+        const ports = _.isArray(serverOptions.port) ? serverOptions.port : [serverOptions.port!];
+        ports.forEach((port) => {
+            console.log(`> Starting SMTP server to listen at ${ proto }://${ host }:${ port }`);
+        });
+    });
+}
+
+function printSmtpListening(proto: string, localAddresses?: (AddressInfo | undefined)[] | undefined) {
+    localAddresses?.forEach((address) => {
+        console.log(`> SMTP server listening at ${ proto }://${ formatAddressPort(address!) }`);
+    });
+}
+
+printStartSmtpListening("smtp", config.smtp.server.smtp?.serverOptions);
+printStartSmtpListening("smtp+tls", config.smtp.server.smtpTls?.serverOptions);
+printStartSmtpListening("smtp+starttls", config.smtp.server.smtpStartTls?.serverOptions);
+printStartSmtpListening("smtp+autotls", config.smtp.server.smtpAutoTls?.serverOptions);
+
+const smtpServer = createSmtpServer(config.smtp.interceptor, userAuth,
+    config.smtp.server.smtp?.serverOptions, config.smtp.server.smtpTls?.serverOptions,
+    config.smtp.server.smtpStartTls?.serverOptions, config.smtp.server.smtpAutoTls?.serverOptions);
 const smtpListening = (async () => {
     await smtpServer.listen();
-    if (config.smtp.server.smtp) {
-        smtpServer.smtpLocalAddresses!.forEach((address) => {
-            console.log(`> SMTP server listening at smtp://${ formatAddressPort(address!) }`);
-        });
-    }
-    if (config.smtp.server.smtpTls) {
-        smtpServer.smtpTlsLocalAddresses!.forEach((address) => {
-            console.log(`> SMTP server listening at smtp+tls://${ formatAddressPort(address!) }`);
-        });
-    }
-    if (config.smtp.server.smtpStartTls) {
-        smtpServer.smtpStartTlsLocalAddresses!.forEach((address) => {
-            console.log(`> SMTP server listening at smtp+starttls://${ formatAddressPort(address!) }`);
-        });
-    }
+    printSmtpListening("smtp", smtpServer.smtpLocalAddresses);
+    printSmtpListening("smtp+tls", smtpServer.smtpTlsLocalAddresses);
+    printSmtpListening("smtp+starttls", smtpServer.smtpStartTlsLocalAddresses);
+    printSmtpListening("smtp+autotls", smtpServer.smtpAutoTlsLocalAddresses);
 })();
 
 const listenPromises = [...httpListenPromises, smtpListening];

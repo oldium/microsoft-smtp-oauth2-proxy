@@ -2,7 +2,6 @@ import React from "react";
 import { AlertTriangle, ArrowRight, Server, ShieldX } from "lucide-react";
 import GitHub from "./icons/github";
 import Microsoft from "./icons/microsoft";
-import { ServerProtoConfig } from "./components/server_proto_config";
 
 export const dynamic = "force-dynamic";
 
@@ -55,26 +54,20 @@ export default function Home() {
                         <p className="leading-relaxed mt-4">
                             The proxy acts as a standard secure SMTP server with SSL/TLS and/or STARTTLS secure
                             communication and with basic authentication (see configuration page after logging in for
-                            credentials). The proxy connects to Microsoft Outlook SMTP server and authenticates the user
-                            with modern OAuth2 authentication.
+                            credentials and actually exposed protocols and ports). The proxy connects to Microsoft
+                            Outlook SMTP server and authenticates the user with modern OAuth2 authentication, it works
+                            the following way:
                         </p>
                         <ul className="leading-relaxed list-disc pl-6 mt-4">
                             <li>
-                                Accepts connection from standard SMTP client
+                                Accepts connection from standard SMTP client.
                             </li>
                             <li>
-                                Securely handles the authentication and transmission process
-                                using TLS encryption
+                                Securely handles the authentication and transmission process using TLS encryption.
                             </li>
                             <li>
-                                Forwards all SMTP commands to Microsoft SMTP server
+                                Forwards all SMTP commands to Microsoft SMTP server.
                             </li>
-                        </ul>
-                        <p className="leading-relaxed mt-4">
-                            The current configuration exposes the following protocols:
-                        </p>
-                        <ul className="leading-relaxed list-disc pl-6 mt-4">
-                            <ServerProtoConfig />
                         </ul>
                     </div>
                 </div>
