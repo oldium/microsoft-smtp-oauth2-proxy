@@ -18,13 +18,23 @@ interface SmtpProtocolEvents {
 type Stages = "init" | "helo" | "tls" | "auth";
 type Commands = { [key: string]: SmtpCommandInterceptor } & { default?: SmtpCommandInterceptor };
 
+const ERR_SYNTAX_ERROR = { code: "501", message: "5.5.2 Syntax error in parameters or arguments" };
+const ERR_AUTH_ABORTED = { code: "501", message: "5.5.2 Authentication aborted" };
+const ERR_BAD_SEQUENCE = { code: "503", message: "5.5.1 Bad sequence of commands" };
+// noinspection SpellCheckingInspection
+const ERR_SEND_HELO_EHLO = { code: "503", message: "5.5.1 Send HELO/EHLO first" };
+const ERR_CONNECTION_SECURED = { code: "503", message: "5.5.1 Connection already secured" };
+const ERR_ISSUE_STARTTLS_FIRST = { code: "530", message: "5.7.0 Must issue a STARTTLS command first" };
+const ERR_AUTH_REQUIRED = { code: "530", message: "5.7.0 Authentication required" };
+const ERR_AUTH_FAILED = { code: "535", message: "5.7.8 Authentication failed" };
+
 // noinspection SpellCheckingInspection
 export class SmtpProtocol extends TypedEmitter<SmtpProtocolEvents> {
     private readonly onCheckUser: (username: string, password: string) => Promise<UserToken | null> | UserToken | null;
     private readonly api: SmtpInterceptorApi;
     private readonly greetingName: string;
 
-    private readonly stageCommands: { [key in Stages]: Commands } = {"init": {}, "helo": {}, "tls": {}, "auth": {}};
+    private readonly stageCommands: { [key in Stages]: Commands } = { "init": {}, "helo": {}, "tls": {}, "auth": {} };
     private stage: Stages = "init";
 
     private readonly timer: SmtpTimer;
@@ -48,18 +58,17 @@ export class SmtpProtocol extends TypedEmitter<SmtpProtocolEvents> {
 
         this.stageCommands.init["HELO"] = this.initialHelo(this.smtpHeloRequest.bind(this));
         this.stageCommands.init["EHLO"] = this.initialHelo(this.smtpEhloRequest.bind(this));
-        this.stageCommands.init["BDAT"] = this.smtpBdatDiscardWithError.bind(this, "503", "5.5.1 Send HELO/EHLO first");
+        this.stageCommands.init["BDAT"] = this.smtpBdatDiscardWithError.bind(this, ERR_SEND_HELO_EHLO.code, ERR_SEND_HELO_EHLO.message);
         this.stageCommands.init["QUIT"] = QUIT;
         this.stageCommands.init.default = this.initialCommands.bind(this);
 
         const HELO = this.withResponse(this.smtpHeloRequest.bind(this));
         const EHLO = this.withResponse(this.smtpEhloRequest.bind(this));
-        const BDAT_AUTH_REQUIRED = this.smtpBdatDiscardWithError.bind(this, "530", "5.7.0 Authentication required");
 
         this.stageCommands.helo["HELO"] = HELO;
         this.stageCommands.helo["EHLO"] = EHLO;
         this.stageCommands.helo["QUIT"] = QUIT;
-        this.stageCommands.helo["BDAT"] = BDAT_AUTH_REQUIRED;
+        this.stageCommands.helo["BDAT"] = this.smtpBdatDiscardWithError.bind(this, ERR_ISSUE_STARTTLS_FIRST.code, ERR_ISSUE_STARTTLS_FIRST.message);
         this.stageCommands.helo["STARTTLS"] = this.smtpStartTls.bind(this);
         this.stageCommands.helo.default = this.heloCommands.bind(this);
 
@@ -67,7 +76,7 @@ export class SmtpProtocol extends TypedEmitter<SmtpProtocolEvents> {
         this.stageCommands.tls["EHLO"] = EHLO;
         this.stageCommands.tls["QUIT"] = QUIT;
         this.stageCommands.tls["AUTH"] = this.smtpAuth.bind(this);
-        this.stageCommands.tls["BDAT"] = BDAT_AUTH_REQUIRED;
+        this.stageCommands.tls["BDAT"] = this.smtpBdatDiscardWithError.bind(this, ERR_AUTH_REQUIRED.code, ERR_AUTH_REQUIRED.message);
         this.stageCommands.tls.default = this.tlsCommands.bind(this);
 
         this.stageCommands.auth["HELO"] = HELO;
@@ -161,17 +170,17 @@ export class SmtpProtocol extends TypedEmitter<SmtpProtocolEvents> {
         if (["NOOP", "RSET"].includes(command.name)) {
             this.api.enqueueForwardRequest(command.line);
         } else {
-            this.api.addPipelineResponse('503 5.5.1 Send HELO/EHLO first\r\n');
+            this.api.addPipelineResponse(`${ ERR_SEND_HELO_EHLO.code } ${ ERR_SEND_HELO_EHLO.message }\r\n`);
         }
     }
 
     public async heloCommands(command: Command): Promise<void> {
+        // RFC3207: The server SHOULD return the reply code 530 to every command other than NOOP, EHLO, STARTTLS, or
+        // QUIT. We permit RSET here as well.
         if (["NOOP", "RSET"].includes(command.name)) {
             this.api.enqueueForwardRequest(command.line);
-        } else if (command.name === "AUTH") {
-            this.api.addPipelineResponse('530 5.5.1 Must issue a STARTTLS command first\r\n');
         } else {
-            this.api.addPipelineResponse('530 5.7.0 Authentication required\r\n');
+            this.api.addPipelineResponse(`${ ERR_ISSUE_STARTTLS_FIRST.code } ${ ERR_ISSUE_STARTTLS_FIRST.message }\r\n`);
         }
     }
 
@@ -179,17 +188,17 @@ export class SmtpProtocol extends TypedEmitter<SmtpProtocolEvents> {
         if (["NOOP", "RSET"].includes(command.name)) {
             this.api.enqueueForwardRequest(command.line);
         } else if (command.name === "STARTTLS") {
-            this.api.addPipelineResponse('503 5.5.1 Connection already secured\r\n');
+            this.api.addPipelineResponse(`${ ERR_CONNECTION_SECURED.code } ${ ERR_CONNECTION_SECURED.message }\r\n`);
         } else {
-            this.api.addPipelineResponse('530 5.7.0 Authentication required\r\n');
+            this.api.addPipelineResponse(`${ ERR_AUTH_REQUIRED.code } ${ ERR_AUTH_REQUIRED.message }\r\n`);
         }
     }
 
     public async authCommands(command: Command): Promise<void> {
         if (command.name === "AUTH") {
-            this.api.addPipelineResponse('503 5.5.1 Bad sequence of commands\r\n');
+            this.api.addPipelineResponse(`${ ERR_BAD_SEQUENCE.code } ${ ERR_BAD_SEQUENCE.message }\r\n`);
         } else if (command.name === "STARTTLS") {
-            this.api.addPipelineResponse('503 5.5.1 Connection already secured\r\n');
+            this.api.addPipelineResponse(`${ ERR_CONNECTION_SECURED.code } ${ ERR_CONNECTION_SECURED.message }\r\n`);
         } else {
             this.api.enqueueForwardRequest(command.line);
         }
@@ -256,30 +265,30 @@ export class SmtpProtocol extends TypedEmitter<SmtpProtocolEvents> {
                 return;
             }
             if (line === "*") {
-                this.api.addPipelineResponse("501 5.5.2 Authentication aborted\r\n");
+                this.api.addPipelineResponse(`${ ERR_AUTH_ABORTED.code } ${ ERR_AUTH_ABORTED.message }\r\n`);
                 return;
             }
             authArgs = line;
         }
         if (authArgs === "*" || authArgs === "=") {
-            this.api.addPipelineResponse("501 5.5.2 Syntax error in parameters or arguments\r\n");
+            this.api.addPipelineResponse(`${ ERR_SYNTAX_ERROR.code } ${ ERR_SYNTAX_ERROR.message }\r\n`);
             return;
         }
         const credentialsBase64 = authArgs!.trim();
         if (credentialsBase64.length === 0) {
-            this.api.addPipelineResponse("501 5.5.2 Syntax error in parameters or arguments\r\n");
+            this.api.addPipelineResponse(`${ ERR_SYNTAX_ERROR.code } ${ ERR_SYNTAX_ERROR.message }\r\n`);
             return;
         }
         let credentials: string;
         try {
             credentials = base64Decode(credentialsBase64);
         } catch {
-            this.api.addPipelineResponse("501 5.5.2 Syntax error in parameters or arguments\r\n");
+            this.api.addPipelineResponse(`${ ERR_SYNTAX_ERROR.code } ${ ERR_SYNTAX_ERROR.message }\r\n`);
             return
         }
         const plainParts = credentials.split("\0");
         if (plainParts.length != 3) {
-            this.api.addPipelineResponse("501 5.5.2 Syntax error in parameters or arguments\r\n");
+            this.api.addPipelineResponse(`${ ERR_SYNTAX_ERROR.code } ${ ERR_SYNTAX_ERROR.message }\r\n`);
             return;
         }
         const username = plainParts[1];
@@ -289,13 +298,13 @@ export class SmtpProtocol extends TypedEmitter<SmtpProtocolEvents> {
         if (userToken) {
             await this.doServerSmtpAuth(userToken.username, userToken.accessToken);
         } else {
-            this.api.addPipelineResponse("535 5.7.8 Authentication failed\r\n");
+            this.api.addPipelineResponse(`${ ERR_AUTH_FAILED.code } ${ ERR_AUTH_FAILED.message }\r\n`);
         }
     }
 
     private async smtpAuthLogin(authArgs: string) {
         if (authArgs === "=" || authArgs === "*") {
-            this.api.addPipelineResponse("501 5.5.2 Syntax error in parameters or arguments\r\n");
+            this.api.addPipelineResponse(`${ ERR_SYNTAX_ERROR.code } ${ ERR_SYNTAX_ERROR.message }\r\n`);
             return;
         }
 
@@ -309,13 +318,13 @@ export class SmtpProtocol extends TypedEmitter<SmtpProtocolEvents> {
                 return;
             }
             if (line === "*") {
-                this.api.addPipelineResponse("501 5.5.2 Authentication aborted\r\n");
+                this.api.addPipelineResponse(`${ ERR_AUTH_ABORTED.code } ${ ERR_AUTH_ABORTED.message }\r\n`);
                 return;
             }
             try {
                 username = base64Decode(line);
             } catch {
-                this.api.addPipelineResponse("501 5.5.2 Syntax error in parameters or arguments\r\n");
+                this.api.addPipelineResponse(`${ ERR_SYNTAX_ERROR.code } ${ ERR_SYNTAX_ERROR.message }\r\n`);
                 return;
             }
         }
@@ -328,13 +337,13 @@ export class SmtpProtocol extends TypedEmitter<SmtpProtocolEvents> {
                 return;
             }
             if (line === "*") {
-                this.api.addPipelineResponse("501 5.5.2 Authentication aborted\r\n");
+                this.api.addPipelineResponse(`${ ERR_AUTH_ABORTED.code } ${ ERR_AUTH_ABORTED.message }\r\n`);
                 return;
             }
             try {
                 password = base64Decode(line);
             } catch {
-                this.api.addPipelineResponse("501 5.5.2 Syntax error in parameters or arguments\r\n");
+                this.api.addPipelineResponse(`${ ERR_SYNTAX_ERROR.code } ${ ERR_SYNTAX_ERROR.message }\r\n`);
                 return;
             }
         }
@@ -343,7 +352,7 @@ export class SmtpProtocol extends TypedEmitter<SmtpProtocolEvents> {
         if (userToken) {
             await this.doServerSmtpAuth(userToken.username, userToken.accessToken);
         } else {
-            this.api.addPipelineResponse("535 5.7.8 Authentication failed\r\n");
+            this.api.addPipelineResponse(`${ ERR_AUTH_FAILED.code } ${ ERR_AUTH_FAILED.message }\r\n`);
         }
     }
 
@@ -355,7 +364,7 @@ export class SmtpProtocol extends TypedEmitter<SmtpProtocolEvents> {
         const { code, data } = await this.api.waitForResponse();
         if (code !== '235') {
             console.error("Authentication error: " + data[0].substring(data[0].length - CRLF.length), data);
-            this.api.addPipelineResponse("535 5.7.8 Authentication failed\r\n");
+            this.api.addPipelineResponse(`${ ERR_AUTH_FAILED.code } ${ ERR_AUTH_FAILED.message }\r\n`);
         } else {
             this.stage = "auth";
             this.api.addPipelineResponse("235 2.7.0 Authentication successful\r\n");
@@ -393,11 +402,11 @@ export class SmtpProtocol extends TypedEmitter<SmtpProtocolEvents> {
             bdatCommand = null;
 
             if (error) {
-                this.api.addPipelineResponse(error.code + " " + error.message + "\r\n");
+                this.api.addPipelineResponse(`${ error.code } ${ error.message }\r\n`);
                 break;
             } else {
                 if (finished) {
-                    this.api.addPipelineResponse(code + " " + message + "\r\n");
+                    this.api.addPipelineResponse(`${ code } ${ message }\r\n`);
                     break;
                 }
             }

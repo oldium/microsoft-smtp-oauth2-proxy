@@ -1132,16 +1132,16 @@ describe("Test protected commands", () => {
         await mockClient.expect("250 test.local Hello\r\n");
 
         await mockClient.send("AUTH PLAIN\r\n");
-        await mockClient.expect("530 5.5.1 Must issue a STARTTLS command first\r\n");
+        await mockClient.expect("530 5.7.0 Must issue a STARTTLS command first\r\n");
         await mockClient.send("MAIL FROM:test@example.com\r\n");
-        await mockClient.expect("530 5.7.0 Authentication required\r\n");
+        await mockClient.expect("530 5.7.0 Must issue a STARTTLS command first\r\n");
         await mockClient.send("RCVD TO:test@example.com\r\n");
-        await mockClient.expect("530 5.7.0 Authentication required\r\n");
+        await mockClient.expect("530 5.7.0 Must issue a STARTTLS command first\r\n");
         await mockClient.send("DATA\r\n");
-        await mockClient.expect("530 5.7.0 Authentication required\r\n");
+        await mockClient.expect("530 5.7.0 Must issue a STARTTLS command first\r\n");
         await mockClient.send("BDAT 256 LAST\r\n");
         await mockClient.send(Buffer.from(Array.from({ length: 256 }, (_, i) => (i + 1) % 256)));
-        await mockClient.expect("530 5.7.0 Authentication required\r\n");
+        await mockClient.expect("530 5.7.0 Must issue a STARTTLS command first\r\n");
 
         await mockClient.send("NOOP\r\n");
         await mockServer.expect("NOOP\r\n");
@@ -1176,16 +1176,16 @@ describe("Test protected commands", () => {
         await mockClient.expect("250-test.local Hello\r\n250-AUTH PLAIN LOGIN\r\n250 STARTTLS\r\n");
 
         await mockClient.send("AUTH PLAIN\r\n");
-        await mockClient.expect("530 5.5.1 Must issue a STARTTLS command first\r\n");
+        await mockClient.expect("530 5.7.0 Must issue a STARTTLS command first\r\n");
         await mockClient.send("MAIL FROM:test@example.com\r\n");
-        await mockClient.expect("530 5.7.0 Authentication required\r\n");
+        await mockClient.expect("530 5.7.0 Must issue a STARTTLS command first\r\n");
         await mockClient.send("RCVD TO:test@example.com\r\n");
-        await mockClient.expect("530 5.7.0 Authentication required\r\n");
+        await mockClient.expect("530 5.7.0 Must issue a STARTTLS command first\r\n");
         await mockClient.send("DATA\r\n");
-        await mockClient.expect("530 5.7.0 Authentication required\r\n");
+        await mockClient.expect("530 5.7.0 Must issue a STARTTLS command first\r\n");
         await mockClient.send("BDAT 256 LAST\r\n");
         await mockClient.send(Buffer.from(Array.from({ length: 256 }, (_, i) => (i + 1) % 256)));
-        await mockClient.expect("530 5.7.0 Authentication required\r\n");
+        await mockClient.expect("530 5.7.0 Must issue a STARTTLS command first\r\n");
 
         await mockClient.send("NOOP\r\n");
         await mockServer.expect("NOOP\r\n");
