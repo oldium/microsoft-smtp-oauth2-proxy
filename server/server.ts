@@ -18,7 +18,6 @@ import assert from "node:assert";
 import { formatAddressPort } from "./smtp/lib/address";
 import { Waitable } from "./smtp/lib/waitable";
 import { refreshFilters } from "./lib/filters";
-import _ from "lodash";
 
 // noinspection SpellCheckingInspection
 const terminationWaitable = new Waitable();
@@ -75,8 +74,7 @@ if (config.development) {
 // Start HTTP Servers
 function printStartHttpListening(proto: string, serverOptions?: TcpServerOptions) {
     serverOptions?.hosts?.forEach((host) => {
-        const ports = _.isArray(serverOptions.port) ? serverOptions.port : [serverOptions.port!];
-        ports.forEach((port) => {
+        serverOptions.ports?.forEach((port) => {
             console.log(`> Starting ${ proto.toUpperCase() } server to listen at ${ proto }://${ host }:${ port } as ${
                 config.development ? "development" : process.env.NODE_ENV }`);
         });
@@ -87,8 +85,7 @@ const httpServers: Server[] = [];
 const httpListenPromises: Promise<void>[] = [];
 printStartHttpListening(config.http.secure ? "https" : "http", config.http.serverOptions);
 config.http.serverOptions.addresses.forEach((address) => {
-    const ports = _.isArray(config.http.serverOptions.port) ? config.http.serverOptions.port : [config.http.serverOptions.port ?? 0];
-    ports.forEach((port) => {
+    config.http.serverOptions.ports?.forEach((port) => {
         let httpServer;
         if (config.http.secure) {
             httpServer = createHttpsServer(config.http.serverOptions, expressApp);
@@ -115,8 +112,7 @@ config.http.serverOptions.addresses.forEach((address) => {
 // Start SMTP Servers
 function printStartSmtpListening(proto: string, serverOptions?: TcpServerOptions) {
     serverOptions?.hosts?.forEach((host) => {
-        const ports = _.isArray(serverOptions.port) ? serverOptions.port : [serverOptions.port!];
-        ports.forEach((port) => {
+        serverOptions.ports?.forEach((port) => {
             console.log(`> Starting SMTP server to listen at ${ proto }://${ host }:${ port }`);
         });
     });
@@ -131,6 +127,7 @@ function printSmtpListening(proto: string, localAddresses?: (AddressInfo | undef
 printStartSmtpListening("smtp", config.smtp.server.smtp?.serverOptions);
 printStartSmtpListening("smtp+tls", config.smtp.server.smtpTls?.serverOptions);
 printStartSmtpListening("smtp+starttls", config.smtp.server.smtpStartTls?.serverOptions);
+// noinspection SpellCheckingInspection
 printStartSmtpListening("smtp+autotls", config.smtp.server.smtpAutoTls?.serverOptions);
 
 const smtpServer = createSmtpServer(config.smtp.interceptor, userAuth,
@@ -141,6 +138,7 @@ const smtpListening = (async () => {
     printSmtpListening("smtp", smtpServer.smtpLocalAddresses);
     printSmtpListening("smtp+tls", smtpServer.smtpTlsLocalAddresses);
     printSmtpListening("smtp+starttls", smtpServer.smtpStartTlsLocalAddresses);
+    // noinspection SpellCheckingInspection
     printSmtpListening("smtp+autotls", smtpServer.smtpAutoTlsLocalAddresses);
 })();
 

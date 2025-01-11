@@ -10,7 +10,6 @@ import { Server, Socket } from "net";
 import { SmtpClientSecureState, SmtpInterceptor, UserAuthorization } from "./protocol/smtp_interceptor";
 import { AddressInfo } from "node:net";
 import { Waitable } from "./lib/waitable";
-import _ from "lodash";
 import { tryCloseSocket } from "./lib/socket";
 import { sleep } from "../lib/sleep";
 import { ConnectionClosedException } from "./lib/exceptions";
@@ -60,7 +59,7 @@ export class SmtpServer {
             this._smtpLocalAddresses = [];
             this._smtpAddresses = [];
             this._smtpPorts = [];
-            SmtpServer.createServers(smtpConfig.addresses, smtpConfig.port, () => new Server(), this.smtpServers, this._smtpLocalAddresses, this._smtpAddresses, this._smtpPorts);
+            SmtpServer.createServers(smtpConfig.addresses, smtpConfig.ports, () => new Server(), this.smtpServers, this._smtpLocalAddresses, this._smtpAddresses, this._smtpPorts);
         }
 
         if (smtpTlsConfig) {
@@ -68,7 +67,7 @@ export class SmtpServer {
             this._smtpTlsLocalAddresses = [];
             this._smtpTlsAddresses = [];
             this._smtpTlsPorts = [];
-            SmtpServer.createServers(smtpTlsConfig.addresses, smtpTlsConfig.port, () => new TLSServer(smtpTlsConfig), this.smtpTlsServers, this._smtpTlsLocalAddresses, this._smtpTlsAddresses, this._smtpTlsPorts);
+            SmtpServer.createServers(smtpTlsConfig.addresses, smtpTlsConfig.ports, () => new TLSServer(smtpTlsConfig), this.smtpTlsServers, this._smtpTlsLocalAddresses, this._smtpTlsAddresses, this._smtpTlsPorts);
         }
 
         if (smtpStartTlsConfig) {
@@ -77,7 +76,7 @@ export class SmtpServer {
             this._smtpStartTlsAddresses = [];
             this._smtpStartTlsPorts = [];
             this.startTlsServerCertificate = smtpStartTlsConfig;
-            SmtpServer.createServers(smtpStartTlsConfig.addresses, smtpStartTlsConfig.port, () => new Server(), this.smtpStartTlsServers, this._smtpStartTlsLocalAddresses, this._smtpStartTlsAddresses, this._smtpStartTlsPorts);
+            SmtpServer.createServers(smtpStartTlsConfig.addresses, smtpStartTlsConfig.ports, () => new Server(), this.smtpStartTlsServers, this._smtpStartTlsLocalAddresses, this._smtpStartTlsAddresses, this._smtpStartTlsPorts);
         }
 
         if (smtpAutoTlsConfig) {
@@ -86,7 +85,7 @@ export class SmtpServer {
             this._smtpAutoTlsAddresses = [];
             this._smtpAutoTlsPorts = [];
             this.autoTlsServerCertificate = smtpAutoTlsConfig;
-            SmtpServer.createServers(smtpAutoTlsConfig.addresses, smtpAutoTlsConfig.port, () => new Server(), this.smtpAutoTlsServers, this._smtpAutoTlsLocalAddresses, this._smtpAutoTlsAddresses, this._smtpAutoTlsPorts);
+            SmtpServer.createServers(smtpAutoTlsConfig.addresses, smtpAutoTlsConfig.ports, () => new Server(), this.smtpAutoTlsServers, this._smtpAutoTlsLocalAddresses, this._smtpAutoTlsAddresses, this._smtpAutoTlsPorts);
         }
     }
 
@@ -142,10 +141,11 @@ export class SmtpServer {
         return this._smtpAutoTlsPorts;
     }
 
-    private static createServers(addresses: Addresses, port: number | number[] | undefined, serverFactory: () => Server, servers: Server[], serverLocalAddresses: (AddressInfo | undefined)[], serverAddresses: (string | undefined)[], serverPorts: (number | undefined)[]) {
+    private static createServers(addresses: Addresses, ports: number[] | undefined, serverFactory: () => Server, servers: Server[], serverLocalAddresses: (AddressInfo | undefined)[], serverAddresses: (string | undefined)[], serverPorts: (number | undefined)[]) {
         addresses.forEach((address) => {
-            const ports = _.isArray(port) ? port : [(!!port) ? port : undefined];
-            ports.forEach((port) => {
+            // Undefined ports means listen on random port (used by tests)
+            const listenPorts = ports ? ports : [undefined];
+            listenPorts.forEach((port) => {
                 servers.push(serverFactory());
                 serverLocalAddresses.push(undefined);
                 serverAddresses.push(address ? address : undefined);

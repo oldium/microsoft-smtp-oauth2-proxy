@@ -31,11 +31,11 @@ const transporter = nodemailer.createTransport({
     debug: true,
     host: "localhost",
     port: config.smtp.server.smtp
-        ? config.smtp.server.smtp.serverOptions.port!
+        ? config.smtp.server.smtp.serverOptions.ports![0]
         : config.smtp.server.smtpTls
-            ? config.smtp.server.smtpTls.serverOptions.port!
+            ? config.smtp.server.smtpTls.serverOptions.ports![0]
             : config.smtp.server.smtpStartTls
-                ? config.smtp.server.smtpStartTls.serverOptions.port!
+                ? config.smtp.server.smtpStartTls.serverOptions.ports![0]
                 : assert(false, "No listening port"),
     auth: {
         user: user.email,

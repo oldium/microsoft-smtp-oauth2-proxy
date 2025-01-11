@@ -14,7 +14,7 @@ export type MicrosoftAppRegistration = { id: string; secret: string };
 export type Certificate = { cert: Buffer; key: Buffer } | { cert?: undefined; key?: undefined };
 
 export type Addresses = [null] | [NonNullable<string>, ...NonNullable<string>[]];
-export type TcpServerOptions = { hosts?: string[], addresses: Addresses, port?: number | number[] | undefined };
+export type TcpServerOptions = { hosts?: string[], addresses: Addresses, ports?: number[] | undefined };
 export type TcpSecureServerOptions = TcpServerOptions & Certificate;
 
 export type Http = {
@@ -148,7 +148,7 @@ const smtpTcpServerOptions: Pick<SmtpServerOptions, "smtp"> = smtpTcpServerPorts
             serverOptions: {
                 hosts: smtpListenHosts,
                 addresses: smtpListenAddresses,
-                port: smtpTcpServerPorts,
+                ports: smtpTcpServerPorts,
             }
         }
     } : {};
@@ -158,7 +158,7 @@ const smtpTcpTlsServerOptions: Pick<SmtpServerOptions, "smtpTls"> = withCertific
         smtpTls: {
             serverOptions: {
                 addresses: smtpListenAddresses,
-                port: smtpTcpTlsServerPorts,
+                ports: smtpTcpTlsServerPorts,
                 ...smtpCertificate
             }
         }
@@ -169,7 +169,7 @@ const smtpTcpStartTlsServerOptions: Pick<SmtpServerOptions, "smtpStartTls"> = wi
         smtpStartTls: {
             serverOptions: {
                 addresses: smtpListenAddresses,
-                port: smtpTcpStartTlsServerPorts,
+                ports: smtpTcpStartTlsServerPorts,
                 ...smtpCertificate,
             }
         }
@@ -180,7 +180,7 @@ const smtpTcpAutoTlsServerOptions: Pick<SmtpServerOptions, "smtpAutoTls"> = with
         smtpAutoTls: {
             serverOptions: {
                 addresses: smtpListenAddresses,
-                port: smtpTcpAutoTlsServerPorts,
+                ports: smtpTcpAutoTlsServerPorts,
                 ...smtpCertificate,
             }
         }
@@ -242,7 +242,7 @@ const http: Http = {
     serverOptions: {
         hosts: httpListenHosts,
         addresses: httpListenAddresses,
-        port: httpListenPorts,
+        ports: httpListenPorts,
         ...httpsCertificate
     }
 }
