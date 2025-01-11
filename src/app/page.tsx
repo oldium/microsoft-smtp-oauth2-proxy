@@ -3,8 +3,6 @@ import { AlertTriangle, ArrowRight, Server, ShieldX } from "lucide-react";
 import GitHub from "./icons/github";
 import Microsoft from "./icons/microsoft";
 
-export const dynamic = "force-dynamic";
-
 export default function Home() {
     return (
         <>
