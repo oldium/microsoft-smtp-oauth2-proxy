@@ -4,6 +4,10 @@ import { execSync } from "node:child_process";
 // Next.js
 execSync('next build', { stdio: 'inherit' });
 
+if (process.env.ANALYZE === 'true') {
+    process.exit(0);
+}
+
 // Iterate ./.next and copy everything except server.js
 const standaloneFiles = await fs.readdir('./.next/standalone');
 for (const file of standaloneFiles) {

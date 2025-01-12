@@ -10,6 +10,7 @@
     "dev": "node --env-file=env.development --env-file=env --enable-source-maps --import=extensionless/register --import=@swc-node/register/esm-register ./server/server.ts",
     "test": "node --import=extensionless/register --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --colors --verbose --detectOpenHandles --workerThreads",
     "build": "node --import=extensionless/register --import=@swc-node/register/esm-register ./build.ts",
+    "analyze": "node --env-file=env.analyze --import=extensionless/register --import=@swc-node/register/esm-register ./build.ts",
     "prod": "node --env-file=./env --import=extensionless/register ./server/server.js",
     "lint": "next lint"
   },
@@ -51,6 +52,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
+    "@next/bundle-analyzer": "^15.1.4",
     "@swc-node/jest": "^1.8.12",
     "@swc-node/register": "^1.10.9",
     "@types/cors": "^2.8.17",
