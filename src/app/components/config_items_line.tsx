@@ -1,6 +1,5 @@
 import ConfigItem from "./config_item";
 import React, { memo } from "react";
-import _ from "lodash";
 
 export default memo(function ConfigItemsLine(props: {
     labels: string[],
@@ -17,7 +16,10 @@ export default memo(function ConfigItemsLine(props: {
         )) }
     </div>;
 }, (prevProps, nextProps) => {
-    return (_.isEqual(prevProps.values, nextProps.values)
-        && !!prevProps.loading === !!nextProps.loading
-        && !!prevProps.disabled === !!nextProps.disabled);
+    if (prevProps.values.length !== nextProps.values.length
+        || !!prevProps.loading !== !!nextProps.loading
+        || !!prevProps.disabled !== !!nextProps.disabled) {
+        return false;
+    }
+    return (prevProps.values.every((value, index) => value === nextProps.values[index]));
 });

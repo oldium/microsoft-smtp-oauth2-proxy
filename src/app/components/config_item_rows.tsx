@@ -1,5 +1,4 @@
 import React, { memo } from "react";
-import _ from "lodash";
 import ConfigItemsLine from "./config_items_line";
 
 function ConfigItemRows<T>(props: {
@@ -21,7 +20,15 @@ function ConfigItemRows<T>(props: {
 }
 
 export default memo(ConfigItemRows, (prevProps, nextProps) => {
-    return (_.isEqual(prevProps.rows, nextProps.rows)
-        && !!prevProps.loading === !!nextProps.loading
-        && !!prevProps.disabled === !!nextProps.disabled);
+    if (prevProps.rows.length !== nextProps.rows.length
+        || !!prevProps.loading !== !!nextProps.loading
+        || !!prevProps.disabled !== !!nextProps.disabled) {
+        return false;
+    }
+    const prevValues = prevProps.rows.map(prevProps.valuesMapper);
+    const nextValues = nextProps.rows.map(nextProps.valuesMapper);
+    return (prevValues.every((values, index) => {
+            return (values.length === nextValues[index].length
+                && values.every((value, valueIndex) => value === nextValues[index][valueIndex]));
+        }));
 }) as typeof ConfigItemRows;

@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { deleteCookie, getCookie } from "cookies-next/client";
 import { toast, ToastType } from "./toaster";
 import { useRouter } from "next/navigation";
-import _ from "lodash";
 // noinspection SpellCheckingInspection
 import striptags from "striptags";
 
@@ -17,12 +16,12 @@ export default function ShowToastsFromCookie() {
         if (value !== undefined) {
             try {
                 const parsed = JSON.parse(value);
-                if (_.isArray(parsed)) {
+                if (Array.isArray(parsed)) {
                     for (const rawMessage of parsed) {
-                        if (_.isMap(rawMessage) && 'message' in rawMessage) {
+                        if (typeof rawMessage === "object" && !Array.isArray(rawMessage) && 'message' in rawMessage) {
                             const messageObject = rawMessage as { message: string, type?: string };
                             const message = striptags(String(messageObject.message));
-                            const type = _.isEmpty(messageObject.type) ? "error": String(messageObject.type);
+                            const type = messageObject.type ? String(messageObject.type) : "error";
 
                             toast(type as ToastType, message);
                         } else {
