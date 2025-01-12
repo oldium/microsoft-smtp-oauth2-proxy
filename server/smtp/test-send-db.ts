@@ -36,7 +36,9 @@ const transporter = nodemailer.createTransport({
             ? config.smtp.server.smtpTls.serverOptions.ports![0]
             : config.smtp.server.smtpStartTls
                 ? config.smtp.server.smtpStartTls.serverOptions.ports![0]
-                : assert(false, "No listening port"),
+                : config.smtp.server.smtpAutoTls
+                    ? config.smtp.server.smtpAutoTls.serverOptions.ports![0]
+                    : assert(false, "No listening port"),
     auth: {
         user: user.email,
         pass: user.smtpPassword,
@@ -47,21 +49,27 @@ const transporter = nodemailer.createTransport({
             ? true
             : config.smtp.server.smtpStartTls
                 ? false
-                : assert(false, "No listening port"),
+                : config.smtp.server.smtpAutoTls
+                    ? true
+                    : assert(false, "No listening port"),
     secured: config.smtp.server.smtp
         ? true
         : config.smtp.server.smtpTls
             ? false
             : config.smtp.server.smtpStartTls
                 ? false
-                : assert(false, "No listening port"),
+                : config.smtp.server.smtpAutoTls
+                    ? false
+                    : assert(false, "No listening port"),
     ignoreTLS: config.smtp.server.smtp
-        ? true
+        ? false
         : config.smtp.server.smtpTls
             ? true
             : config.smtp.server.smtpStartTls
                 ? false
-                : assert(false, "No listening port"),
+                : config.smtp.server.smtpAutoTls
+                    ? true
+                    : assert(false, "No listening port"),
     tls: {
         rejectUnauthorized: false,
     },
