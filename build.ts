@@ -28,6 +28,7 @@ await fs.cp('./.next/static', './dist/.next/static', { preserveTimestamps: true,
 await fs.mkdir('./dist/public', { recursive: true });
 const publicFiles = await fs.readdir('./public');
 for (const file of publicFiles) {
+    // noinspection SpellCheckingInspection
     if (file !== '.gitkeep') {
         await fs.cp(`./public/${ file }`, `./dist/public/${ file }`, {
             preserveTimestamps: true,

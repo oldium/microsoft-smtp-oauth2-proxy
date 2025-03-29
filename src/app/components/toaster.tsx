@@ -16,7 +16,10 @@ import { AlertTriangle, CircleCheck, Info, OctagonX } from "lucide-react";
 export type ToastType = "info" | "warning" | "error" | "success";
 
 export function toast(type: ToastType, message: string) {
-    const messageHtml = parse(marked.parse(message) as string);
+    let messageHtml = parse(marked.parse(message) as string);
+    if (Array.isArray(messageHtml)) {
+        messageHtml = <> { messageHtml } </>;
+    }
     console.log(messageHtml);
 
     switch (type) {

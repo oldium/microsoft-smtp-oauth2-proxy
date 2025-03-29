@@ -19,7 +19,7 @@ export default function ShowToastsFromCookie() {
                 if (Array.isArray(parsed)) {
                     for (const rawMessage of parsed) {
                         if (typeof rawMessage === "object" && !Array.isArray(rawMessage) && 'message' in rawMessage) {
-                            const messageObject = rawMessage as { message: string, type?: string };
+                            const messageObject = rawMessage as { message: unknown, type?: unknown };
                             const message = striptags(String(messageObject.message));
                             const type = messageObject.type ? String(messageObject.type) : "error";
 
