@@ -65,6 +65,12 @@
   }
 }
 
+/* Workaround for hover:hover media style not working on
+   Chrome-based browsers, see
+   https://issues.chromium.org/issues/394519480
+*/
+@custom-variant hover (&:hover);
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
