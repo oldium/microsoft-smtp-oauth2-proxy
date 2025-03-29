@@ -28,7 +28,7 @@ export default function RootLayout({
         <Toaster/>
         <ShowToastsFromCookie/>
         <div
-            className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            className="min-h-screen bg-linear-to-b from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <Header/>
             { children }
             <Footer/>

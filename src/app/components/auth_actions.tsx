@@ -55,14 +55,14 @@ export default function AuthActions() {
 
     return (<>
             <button
-                className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium rounded-xl text-white bg-red-500 hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-800 transition-all duration-200 hover:scale-105"
+                className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium rounded-xl text-white bg-red-500 hover:bg-red-800 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-red-800 transition-all duration-200 hover:scale-105"
                 onClick={ doCancel }
             >
                 Cancel
                 <MailX className="ml-3 h-5 w-5"/>
             </button>
             <button
-                className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium rounded-xl text-white bg-sky-500 hover:bg-sky-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-800 transition-all duration-200 hover:scale-105"
+                className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium rounded-xl text-white bg-sky-500 hover:bg-sky-800 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-sky-800 transition-all duration-200 hover:scale-105"
                 onClick={ doLogout }
             >
                 Sign out

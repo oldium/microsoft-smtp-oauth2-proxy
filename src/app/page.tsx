@@ -8,7 +8,7 @@ export default function Home() {
         <>
             <div className="mt-16 bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8">
                 <div className="flex items-start space-x-4">
-                    <ShieldX className="h-6 w-6 text-red-600 dark:text-red-500 flex-shrink-0 mt-1"/>
+                    <ShieldX className="h-6 w-6 text-red-600 dark:text-red-500 shrink-0 mt-1"/>
                     <div className="pr-10">
                         <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-200 mb-4">
                             The Issue
@@ -30,7 +30,7 @@ export default function Home() {
                 </div>
 
                 <div className="mt-12 flex items-start space-x-4">
-                    <Server className="h-6 w-6 text-green-500 dark:text-green-400 flex-shrink-0 mt-1"/>
+                    <Server className="h-6 w-6 text-green-500 dark:text-green-400 shrink-0 mt-1"/>
                     <div className="pr-10 text-gray-600 dark:text-gray-200">
                         <h2 className="text-2xl font-semibold mb-4">
                             The Solution
@@ -39,7 +39,7 @@ export default function Home() {
                             <a
                                 rel="noopener"
                                 className="inline-flex gap-1 items-center px-4 py-2 border border-transparent text-lg
-                                font-medium rounded-xl text-white dark:text-gray-100 bg-black focus:outline-none
+                                font-medium rounded-xl text-white dark:text-gray-100 bg-black focus:outline-hidden
                                 focus:ring-2 focus:ring-offset-2 focus:ring-black transition-all duration-200
                                 hover:scale-105"
                                 href="https://github.com/oldium/microsoft-smtp-oauth2-proxy"
@@ -71,7 +71,7 @@ export default function Home() {
                 </div>
 
                 <div className="mt-12 flex items-start space-x-4">
-                    <AlertTriangle className="h-6 w-6 text-amber-500 flex-shrink-0 mt-1"/>
+                    <AlertTriangle className="h-6 w-6 text-amber-500 shrink-0 mt-1"/>
                     <div className="pr-10">
                         <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-200 mb-4">
                             The Permissions
@@ -101,7 +101,7 @@ export default function Home() {
                 <div className="mt-8 flex flex-col items-center">
                     <a
                         className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium
-                        rounded-xl text-white bg-[#05a6f0] hover:bg-[#0490d3] focus:outline-none focus:ring-2
+                        rounded-xl text-white bg-[#05a6f0] hover:bg-[#0490d3] focus:outline-hidden focus:ring-2
                         focus:ring-offset-2 focus:ring-[#05a6f0] transition-all duration-200 hover:scale-105"
                         href="/auth"
                     >

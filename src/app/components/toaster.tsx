@@ -72,7 +72,7 @@ const ToastBar = memo(function ToastBar(props: { toast: Toast }) {
                     : "motion-safe:animate-leave motion-reduce:animate-fade-out",
                 t.className
                 ) }>
-            { icon ? <div className={`flex-shrink-0`}> { icon } </div> : null }
+            { icon ? <div className={`shrink-0`}> { icon } </div> : null }
             <div className={ `space-y-4` }>
                 { resolveValue(t.message, t) }
             </div>
