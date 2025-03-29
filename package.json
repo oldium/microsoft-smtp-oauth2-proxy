@@ -3,7 +3,7 @@
   "description": "A simple SMTP server with basic authentication that proxies to Microsoft SMTP server with OAuth2 authentication",
   "author": "Oldřich Jedlička",
   "license": "BSD-2-Clause",
-  "version": "1.0.0",
+  "version": "1.2.2",
   "private": true,
   "type": "module",
   "scripts": {
