@@ -234,7 +234,7 @@ const httpsCertificate: Certificate =
         : {};
 
 const httpListenHostsString = _.isEmpty(process.env.HTTP_HOST) ? smtpListenHostsString : process.env.HTTP_HOST!;
-const httpListenHosts = formatListenHosts(smtpListenHostsString);
+const httpListenHosts = formatListenHosts(httpListenHostsString);
 const httpListenAddresses = (httpListenHostsString === smtpListenHostsString) ? _.clone(smtpListenAddresses) : await resolveListenHosts(httpListenHostsString);
 const httpListenPorts = parsePortList(process.env.HTTP_PORT, 3000);
 const http: Http = {
