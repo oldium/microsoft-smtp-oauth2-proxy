@@ -13,8 +13,6 @@ import { createServer as createSmtpServer } from "./smtp/smtp_server";
 import { AddressInfo } from "node:net";
 import { readFileSync } from "node:fs";
 import { userAuth } from "./lib/auth";
-import dns from "node:dns/promises";
-import assert from "node:assert";
 import { formatAddressPort } from "./smtp/lib/address";
 import { Waitable } from "./smtp/lib/waitable";
 import { refreshFilters } from "./lib/filters";
@@ -57,19 +55,6 @@ expressApp.use(async (req, res) => {
     const parsedUrl = parse(req.url!, true);
     await nextAppHandler(req, res, parsedUrl);
 });
-
-// Servers
-const listenHosts: (string | null)[] = [];
-if (config.development) {
-    // Resolve localhost to IPv4 and IPv6 when available
-    const localhostAddress = await dns.lookup("localhost", { all: true, order: "ipv4first" });
-    assert(localhostAddress.length > 0, "No localhost address found");
-    localhostAddress.forEach((address) => {
-        listenHosts.push(address.address);
-    });
-} else {
-    listenHosts.push(null);
-}
 
 // Start HTTP Servers
 function printStartHttpListening(proto: string, serverOptions?: TcpServerOptions) {
