@@ -48,6 +48,7 @@
     "sqlite3": "^5.1.7",
     "striptags": "^3.2.0",
     "throat": "^6.0.2",
+    "tiny-typed-emitter": "^2.1.0",
     "yn": "^5.0.0"
   },
   "devDependencies": {
@@ -72,7 +73,6 @@
     "postcss": "^8.5.3",
     "selfsigned": "^2.4.1",
     "tailwindcss": "^4.0.17",
-    "tiny-typed-emitter": "^2.1.0",
     "typescript": "^5.8.2",
     "typescript-eslint": "^8.28.0"
   }
