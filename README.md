@@ -73,8 +73,8 @@ Dark mode is supported 🎉.
 
 ## Quick Start
 
-This project is developed with Node.js version 23, Next.js 15.1 and React 19. It
-uses custom entrypoint to start both the SMTP server and the web server.
+This project is developed with Node.js version 24, Next.js 15.5 and React 19.1.
+It uses custom entrypoint to start both the SMTP server and the web server.
 
 First, install the dependencies:
 
@@ -633,7 +633,7 @@ value) and the network inside is named `services`, thus the name
 You also need the following `mmproxy-Dockerfile` file:
 
 ```yaml
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 
 RUN apt-get update \
         && DEBCONF_NOWARNINGS="yes" DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends apt-utils \
