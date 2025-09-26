@@ -3,11 +3,14 @@ FROM node:24-alpine AS builder
 WORKDIR /build
 
 # Copy package files and install dependencies
-COPY package*.json ./
-RUN npm ci
+COPY --chmod=u=rw,go=r package*.json ./
+
+RUN npm install -g npm@latest \
+ && npm ci
 
 # Copy application files
-COPY . .
+COPY --chmod=u=rw,go=r . .
+RUN find . -mindepth 1 -maxdepth 1 -type d ! -name node_modules -exec chmod -R ugo+X {} +
 
 # Build the application
 RUN npm run build
@@ -18,8 +21,10 @@ RUN apk add --no-cache runuser
 
 WORKDIR /app
 
+RUN npm install -g npm@latest
+
 COPY --from=builder --chown=node:node /build/dist/ /app
-COPY ./entrypoint.sh /entrypoint.sh
+COPY --chmod=u=rwx,go=rx ./entrypoint.sh /entrypoint.sh
 
 EXPOSE 3000
 
