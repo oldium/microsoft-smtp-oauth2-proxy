@@ -7,6 +7,7 @@ import {
     AuthorizationCodePayload,
     AuthorizationCodeRequest,
     AuthorizationUrlRequest,
+    ClientAuthErrorCodes,
     ConfidentialClientApplication,
     Configuration as MSALConfiguration,
     InteractionRequiredAuthError
@@ -268,8 +269,14 @@ export const getAccessToken: (user: User) => Promise<UserToken> = (function () {
                     await updateUserCredentials(user.uid, user.username, {cache: ""});
                     throw new Error(`Credentials expired: ${err.message}`);
                 } else if (err instanceof AuthError) {
-                    await updateUserCredentials(user.uid, user.username, {cache: ""});
-                    throw new Error(`Authorization error: ${err.message}`);
+                    if (err.code === ClientAuthErrorCodes.networkError) {
+                        // TODO: Retry later in upper layer
+                        await updateUserCredentials(user.uid, user.username, {cache: ""});
+                        throw new Error(`Authorization error: ${err.message}`);
+                    } else {
+                        await updateUserCredentials(user.uid, user.username, {cache: ""});
+                        throw new Error(`Authorization error: ${err.message}`);
+                    }
                 } else {
                     throw err;
                 }
