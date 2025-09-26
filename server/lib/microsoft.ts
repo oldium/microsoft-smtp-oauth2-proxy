@@ -312,7 +312,7 @@ export async function refreshAllExpiredUserCredentialsJob() {
         try {
             await getAccessToken(user);
         } catch (err) {
-            console.warn(`Failed to refresh credentials for ${user.email}: ${err instanceof Error && err.message || err}`);
+            console.warn(`Failed to refresh credentials for ${user.email}: ${ (err instanceof Error && err.message) || err }`);
         }
     });
     await Promise.allSettled(promises);

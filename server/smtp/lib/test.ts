@@ -99,7 +99,7 @@ export class SpySmtpServer extends SmtpServer {
             this.ended.set();
             console.info("Connection closed cleanly", address);
         } catch (err) {
-            console.warn(`Connection closed with error: ${ err instanceof Error ? err.message : err?.toString() }`, address);
+            console.warn(`Connection closed with error: ${ (err instanceof Error && err.message) || err }`, address);
             this.ended.set(err);
         }
     }
