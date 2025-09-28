@@ -1,9 +1,0 @@
-{
-  "extends": "../tsconfig.json",
-  "compilerOptions": {
-    "plugins": [],
-    "noEmit": false,
-    "outDir": "../dist",
-  },
-  "include": ["./**/*.ts", "../types/**/*.ts", "../dto/**/*.ts"],
-}

@@ -192,7 +192,7 @@ This tool uses the SQLite database and SMTP proxy configuration to send the
 email.
 
 ```bash
-node --import=extensionless/register --import=@swc-node/register/esm-register \
+node --import=@swc-node/register/esm-register \
   server/smtp/test-send-db.ts <from> <to>
 ```
 
@@ -207,7 +207,7 @@ This tool does not use any internal configuration, it just acts as an SMTP
 client, which wants to send an email.
 
 ```bash
-node --import=extensionless/register --import=@swc-node/register/esm-register \
+node --import=@swc-node/register/esm-register \
   server/smtp/test-send-auth.ts localhost:<port> \
   <from> <password> <to> [<subject> [<message>]]
 ```

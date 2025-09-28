@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["dom", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
+    "resolveJsonModule": true,
+    "resolvePackageJsonExports": true,
+    "isolatedModules": true,
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "inlineSourceMap": true,
+    "customConditions": [
+      "development"
+    ]
+  },
+  "include": [
+    "*.ts",
+    "src/**/*.ts",
+    "../../types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

@@ -26,16 +26,17 @@ const config = {
     '^(punycode\\.js)$': '$1',
     '^(base32\\.js)$': '$1',
     '^(ipaddr\\.js)$': '$1',
-    '^(.+)\\.js$': '$1'
+    '^(.+)\\.js$': '$1',
+    '^@ms-smtp/([^/]*)(.*)$': '<rootDir>/packages/$1/src$2'
   },
 
   // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
   testPathIgnorePatterns: [
     "/node_modules/",
-    "/server/smtp/test*.ts",
-    "/server/smtp/lib/test*.ts",
-    "/build/",
-    "/dist/"
+    "<rootDir>/packages/server/src/smtp/test.*.ts",
+    "<rootDir>/packages/server/src/smtp/lib/test.ts",
+    "<rootDir>/build/",
+    "<rootDir>/?.*/dist/"
   ],
 
   // A map from regular expressions to paths to transformers

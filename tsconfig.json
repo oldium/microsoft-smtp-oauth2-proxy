@@ -6,21 +6,23 @@
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
     "resolveJsonModule": true,
+    "resolvePackageJsonExports": true,
     "isolatedModules": true,
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
     "jsx": "preserve",
     "incremental": true,
-    "inlineSourceMap": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "outDir": "./dist",
+    "inlineSourceMap": true
   },
-  "include": ["next-env.d.ts", "src/**/*.ts", "src/**/*.tsx", "types/**/*.ts", ".next/types/**/*.ts", "dto/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "build.ts",
+    "install.ts",
+    "types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

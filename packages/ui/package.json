@@ -1,0 +1,48 @@
+{
+  "name": "@ms-smtp/ui",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "bin": {
+    "server": "./dist/bin/server.js"
+  },
+  "scripts": {
+    "dev": "node --conditions development --env-file=../../env.development --env-file=../../env --enable-source-maps --import=@swc-node/register/esm-register ./server.ts",
+    "dev:next": "cross-env NODE_ENV=development NEXT_TELEMETRY_DISABLED=1 next dev",
+    "build": "cross-env NODE_ENV=production tsc --project ./tsconfig.bin.json",
+    "build:next": "cross-env NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 next build",
+    "prod": "node --env-file=./env ./dist/bin/server.js"
+  },
+  "dependencies": {
+    "@ms-smtp/common": "0.0.0",
+    "@ms-smtp/lib": "0.0.0",
+    "@ms-smtp/server": "0.0.0",
+    "clsx": "^2.1.1",
+    "express": "^5.2.1",
+    "geist": "^1.5.1",
+    "html-react-parser": "^5.2.12",
+    "iron-session": "^8.0.4",
+    "localenv": "^0.2.2",
+    "lucide-react": "^0.563.0",
+    "marked": "^17.0.1",
+    "next": "^16.1.5",
+    "react": "19.2.4",
+    "react-dom": "^19.2.4",
+    "react-hot-toast": "^2.6.0",
+    "striptags": "^3.2.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@next/bundle-analyzer": "^16.1.5",
+    "@tailwindcss/postcss": "^4.1.18",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.0.10",
+    "@types/react": "^19.2.10",
+    "@types/react-dom": "^19.2.3",
+    "cross-env": "^10.1.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.54.0"
+  }
+}

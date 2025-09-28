@@ -1,6 +1,8 @@
 // noinspection JSUnusedGlobalSymbols
 declare namespace NodeJS {
     interface ProcessEnv {
+        NODE_ENV?: string;
+        NEXT_PHASE?: string;
         APP_SECRETS?: string;
         DEFAULT_APP_ID?: string;
         SQLITE_PATH?: string;

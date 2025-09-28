@@ -1,0 +1,41 @@
+{
+  "name": "@ms-smtp/lib",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "cross-env NODE_ENV=production tsc --project ./tsconfig.build.json",
+    "clean": "rimraf ./dist"
+  },
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    "./*": {
+      "development": "./src/*.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "dependencies": {
+    "@azure/msal-node": "^5.0.2",
+    "@microsoft/microsoft-graph-client": "^3.0.7",
+    "@ms-smtp/common": "0.0.0",
+    "cors": "^2.8.6",
+    "crypto-random-string": "^5.0.0",
+    "express": "^5.2.1",
+    "ipaddr.js": "^2.3.0",
+    "iron-session": "^8.0.4",
+    "lodash": "^4.17.23",
+    "p-limit": "^7.2.0"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.17.23",
+    "cross-env": "^10.1.0",
+    "eslint": "^9.39.2",
+    "next": "^16.1.5",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.54.0"
+  }
+}
