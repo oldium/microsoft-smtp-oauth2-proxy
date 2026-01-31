@@ -112,8 +112,6 @@ async function constructSmtpClient(host: string, port: number, tlsState: TlsStat
         host: host,
         port: port,
         secure: tlsState === TlsState.Secure,
-        // @ts-expect-error secured is not defined but is recognized
-        secured: tlsState === TlsState.FakeSecure,
         ignoreTLS: (tlsState === TlsState.FakeSecure || tlsState === TlsState.Secure),
         tls: {
             rejectUnauthorized: false,
