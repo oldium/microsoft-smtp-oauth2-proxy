@@ -25,8 +25,8 @@ server. The proxy server supports the following features:
 * 🐋 Docker-ready.
 * ✉️ Sending emails using the SMTP protocol.
 * 📬 Unprotected port for local trusted clients.
-* 💡 Mixed-mode operation with independent SSL/TLS and STARTTLS
-  connections for client and downstream server.
+* 💡 Mixed-mode operation with independent SSL/TLS and STARTTLS connections for
+  client and downstream server.
 * 🎉 Allows to use single port for SSL/TLS (a.k.a. implicit TLS) and STARTTLS
   connections (see `SMTP_AUTOTLS_PORT` variable in
   [`env.example`][env-example]).
@@ -172,10 +172,10 @@ In order to register the application, do the following:
 > [!TIP]
 > One common gotcha is that you have http://localhost:3000/auth in the redirect
 > URI, but you opened the web interface on http://127.0.0.1:3000, so the
-> redirect URI created by application is http://127.0.0.1:3000/auth. The host
-> part of the URI must match exactly the one in the redirect URI, so the login
-> will not work. The easiest fix for this is to include both redirect URIs in
-> the setup.
+> redirect URI created by application is http://127.0.0.1:3000/auth. The
+> application URI must match exactly the configured redirect URI (including the
+> protocol), so the login will not work. The easiest fix for this is to include
+> both redirect URIs in the setup if possible.
 
 [create-azure]: https://azure.microsoft.com/en-us/pricing/purchase-options/azure-account
 
@@ -305,10 +305,9 @@ npm run prod
 ```
 
 This expects that the correct environment variables are set for the production.
-Either modify the generated `env` file (it contains few mandatory values to
-set up production), or simply ensure that the environment variables are set
-before the command is executed. This is suitable especially for the Docker
-environment.
+Either modify the generated `env` file (it contains few mandatory values to set
+up production), or simply ensure that the environment variables are set before
+the command is executed. This is suitable especially for the Docker environment.
 
 ### Docker Build
 
@@ -506,8 +505,8 @@ We will use Docker Compose for this setup. Let's have some assumptions:
 * HAProxy is already up and running. The configuration shown here is only for
   the SMTP service, so the rest of the configuration is omitted.
 * The SMTP proxy shares the network with HAProxy, so the SMTP proxy is reachable
-  by the HAProxy service by name and on the _listening_ ports. In the
-  examples below we assume the service name is `smtp-proxy`.
+  by the HAProxy service by name and on the _listening_ ports. In the examples
+  below we assume the service name is `smtp-proxy`.
 * The domain for SMTP and HTTP (web UI) is the same, in examples it is
   `smtp.example.com`.
 
@@ -632,17 +631,17 @@ value) and the network inside is named `services`, thus the name
 
 You also need the following `mmproxy-Dockerfile` file:
 
-```yaml
+```dockerfile
 FROM debian:trixie-slim
 
 RUN apt-get update \
-        && DEBCONF_NOWARNINGS="yes" DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends apt-utils \
-        && DEBIAN_FRONTEND=noninteractive \
+ && DEBCONF_NOWARNINGS=yes DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends apt-utils \
+ && DEBIAN_FRONTEND=noninteractive \
         apt-get install -y --no-install-recommends \
-                go-mmproxy \
-                iptables \
-                iproute2 \
-        && apt-get clean
+            go-mmproxy \
+            iptables \
+            iproute2 \
+ && rm -rf /var/lib/apt/lists/*
 
 COPY --chmod=775 ./mmproxy-entrypoint.sh /entrypoint.sh
 ENTRYPOINT [ "/entrypoint.sh" ]
@@ -716,5 +715,5 @@ the following:
 ### How?
 
 The SMTP server implementation started from Gemini 2.0 code, which I completely
-rewrote. But it was superb to have some starting point, it felt like a code
-from a medior software engineer with some junior habits 😅.
+rewrote. But it was superb to have some starting point, it felt like a code from
+a medior software engineer with some junior habits 😅.
