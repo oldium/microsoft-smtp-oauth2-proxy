@@ -38,6 +38,9 @@ RUN --mount=type=cache,target=/root/.npm \
 COPY --chmod=u=rw,go=r . .
 RUN find . -mindepth 1 -maxdepth 1 -type d ! -name node_modules -exec chmod -R ugo+X {} +
 
+# Test the application
+RUN npm run test
+
 # Build the application
 RUN --mount=type=cache,target=/root/.npm \
     --mount=type=cache,target=/root/.ccache \
