@@ -1437,11 +1437,26 @@ describe("Test protected commands", () => {
 });
 
 describe("Test connection closed and timeout handling", () => {
+    test("Check connection rejected handling", async () => {
+        await createMocks(ServerTlsType.Secured, MockServerTlsType.Secured);
+
+        // Close mock server and pending connections
+        await mockServer.close();
+
+        // Connection is always accepted
+        await mockClient.connect();
+
+        await smtpServer.expectError("Unexpected end of data");
+        await smtpServer.close();
+
+        await mockClient.close();
+    }, 300000);
+
     test("Check initial connection closed handling", async () => {
         await createMocks(ServerTlsType.Secured, MockServerTlsType.Secured);
 
         // Connection is always accepted
-        await mockClient.connect();
+        await Promise.all([mockClient.connect(), mockServer.accept()])
 
         // Close mock server and pending connections
         await mockServer.close();

@@ -14,6 +14,7 @@ export class Pipeline extends TypedEmitter<PipelineEvents> {
     private readonly pipeline: Handler[] = [];
     private readonly closed = new Waitable(null);
     private readonly finished = new Waitable();
+    private looping = false;
 
     constructor() {
         super();
@@ -21,10 +22,13 @@ export class Pipeline extends TypedEmitter<PipelineEvents> {
 
     public async close(err?: unknown): Promise<void> {
         this.closed.set(err);
-        await this.finished.promise;
+        if (this.looping) {
+            await this.finished.promise;
+        }
     }
 
     public async loop() {
+        this.looping = true;
         try {
             while (true) {
                 if (this.pipeline.length === 0) {
@@ -52,7 +56,6 @@ export class Pipeline extends TypedEmitter<PipelineEvents> {
                         // flushing all writes in-order
                         this.pipeline.shift();
                     }
-
                 }
             }
 
