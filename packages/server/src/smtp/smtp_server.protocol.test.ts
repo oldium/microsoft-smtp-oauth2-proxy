@@ -211,7 +211,7 @@ describe("Test STARTTLS handling", () => {
 
         await mockClient.send("EHLO test.local\r\n");
         await mockServer.expect("EHLO test.local\r\n");
-        await mockServer.send("250-test.local Hello\r\n250 AUTH XOAUTH2\r\n");
+        await mockServer.send("250-test.local Hello\r\n250-AUTH XOAUTH2\r\n250 STARTTLS\r\n");
         await mockClient.expect("250-test.local Hello\r\n250-AUTH PLAIN LOGIN\r\n250 STARTTLS\r\n");
 
         await mockClient.send("STARTTLS\r\n");
@@ -736,7 +736,7 @@ describe("Test mail data handling", () => {
         const message = "From: Me\r\nTo: You\r\nSubject: Test Message\r\n\r\nThis is a test message.\r\n..Not so fast.\r\n";
         await mockClient.send("BDAT 85 LAST\r\n");
         await mockClient.send(message);
-        await mockServer.expect("BDAT 85 LAST\r\n", true);
+        await mockServer.expectPartial("BDAT 85 LAST\r\n");
         await mockServer.expect(message);
 
         await mockServer.send("250 Message OK, 85 octets received\r\n");
@@ -786,7 +786,7 @@ describe("Test mail data handling", () => {
         const message = "From: Me\r\nTo: You\r\nSubject: Test Message\r\n\r\nThis is a test message.\r\n..Not so fast.\r\n";
         await mockClient.send("BDAT 85\r\n");
         await mockClient.send(message);
-        await mockServer.expect("BDAT 85\r\n", true);
+        await mockServer.expectPartial("BDAT 85\r\n");
         await mockServer.expect(message);
         await mockServer.send("250 85 octets received\r\n");
         await mockClient.expect("250 85 octets received\r\n");
@@ -794,14 +794,14 @@ describe("Test mail data handling", () => {
         const bigMessage = _.repeat("This is a very long email.\r\n", 1024);
         await mockClient.send("BDAT 28672\r\n");
         await mockClient.send(bigMessage);
-        await mockServer.expect("BDAT 28672\r\n", true);
+        await mockServer.expectPartial("BDAT 28672\r\n");
         await mockServer.expect(bigMessage);
         await mockServer.send("250 28672 octets received\r\n");
         await mockClient.expect("250 28672 octets received\r\n");
 
         await mockClient.send("BDAT 28672\r\n");
         await mockClient.send(bigMessage);
-        await mockServer.expect("BDAT 28672\r\n", true);
+        await mockServer.expectPartial("BDAT 28672\r\n");
         await mockServer.expect(bigMessage);
         await mockServer.send("250 28672 octets received\r\n");
         await mockClient.expect("250 28672 octets received\r\n");
@@ -902,7 +902,7 @@ describe("Test pipelining handling", () => {
         const message = "From: Me\r\nTo: You\r\nSubject: Test Message\r\nThis is a test message.\r\n..Not so fast.\r\n";
         await mockClient.send("BDAT 85 LAST\r\n");
         await mockClient.send(message);
-        await mockServer.expect("BDAT 85 LAST\r\n", true);
+        await mockServer.expectPartial("BDAT 85 LAST\r\n");
         await mockServer.expect(message);
         await mockClient.send("QUIT\r\n");
         await mockServer.expect("QUIT\r\n");
@@ -950,18 +950,18 @@ describe("Test pipelining handling", () => {
         assert(message.length === 85);
         await mockClient.send("BDAT 85\r\n");
         await mockClient.send(message);
-        await mockServer.expect("BDAT 85\r\n", true);
+        await mockServer.expectPartial("BDAT 85\r\n");
         await mockServer.expect(message);
 
         const bigMessage = _.repeat("This is a very long email.\r\n", 1024);
         assert(bigMessage.length === 28672);
         await mockClient.send("BDAT 28672\r\n");
         await mockClient.send(bigMessage);
-        await mockServer.expect("BDAT 28672\r\n", true);
+        await mockServer.expectPartial("BDAT 28672\r\n");
         await mockServer.expect(bigMessage);
         await mockClient.send("BDAT 28672\r\n");
         await mockClient.send(bigMessage);
-        await mockServer.expect("BDAT 28672\r\n", true);
+        await mockServer.expectPartial("BDAT 28672\r\n");
         await mockServer.expect(bigMessage);
         await mockClient.send("BDAT 0 LAST\r\n");
         await mockServer.expect("BDAT 0 LAST\r\n");
@@ -1682,6 +1682,179 @@ describe("Test connection closed and timeout handling", () => {
 
         await mockServer.close();
         await mockClient.close();
+    }, 300000);
+
+});
+
+describe("Test client unexpected behaviour", () => {
+    test("Check message batch handling", async () => {
+        await createMocks(ServerTlsType.Secured, MockServerTlsType.Secured);
+
+        // Connection is always accepted
+        await Promise.all([mockClient.connect(), mockServer.accept()])
+
+        await mockClient.send("EHLO test.local\r\n");
+        await mockClient.send("NOOP\r\n");
+        await mockClient.send("QUIT\r\n");
+        await mockServer.send("220 test.local ESMTP\r\n");
+        await mockClient.expect("220-test.local ESMTP\r\n220 Welcome to microsoft-smtp-oauth2-proxy @ smtp.example.com\r\n");
+        await mockServer.expect("EHLO test.local\r\n");
+        await mockServer.send("250-test.local Hello\r\n250 AUTH XOAUTH2\r\n");
+        await mockClient.expect("250-test.local Hello\r\n250 AUTH PLAIN LOGIN\r\n");
+        await mockServer.expectPartial("NOOP\r\n");
+
+        await mockServer.send("250 OK\r\n");
+        await mockClient.expect("250 OK\r\n");
+        await mockServer.expect("QUIT\r\n");
+        await mockServer.send("221 Bye\r\n");
+        mockServer.end();
+        await mockClient.expect("221 Bye\r\n");
+
+        await smtpServer.expectEnd();
+        await mockServer.expectEnded();
+        await mockClient.expectEnded();
+
+        await mockServer.close();
+        await mockClient.close();
+        await smtpServer.close();
+    }, 300000);
+
+    test("Check eager client sending email handling", async () => {
+        await createMocks(ServerTlsType.Secured, MockServerTlsType.Secured);
+
+        await Promise.all([mockClient.connect(), mockServer.accept()])
+
+        await mockClient.send("EHLO test.local\r\n");
+        await mockClient.send("AUTH PLAIN\r\n");
+        await mockClient.send(base64Encode(["", "test-username", "test-password"].join("\x00")) + "\r\n");
+        await mockClient.send("MAIL FROM:<from@example.com>\r\n");
+        await mockClient.send("RCPT TO:<to@example.com>\r\n");
+        await mockClient.send("DATA\r\n");
+        await mockClient.send("From: Me\r\nTo: You\r\nSubject: Test Message\r\nThis is a test message.\r\n..Not so fast.\r\n.\r\n");
+        await mockClient.send("QUIT\r\n");
+
+        await mockServer.send("220 test.local ESMTP\r\n");
+        await mockClient.expect("220-test.local ESMTP\r\n220 Welcome to microsoft-smtp-oauth2-proxy @ smtp.example.com\r\n");
+
+        await mockServer.expectPartial("EHLO test.local\r\n");
+        await mockServer.send("250-test.local Hello\r\n250 AUTH XOAUTH2\r\n");
+        await mockClient.expectPartial("250-test.local Hello\r\n250 AUTH PLAIN LOGIN\r\n");
+
+        await mockClient.expectPartial("334 \r\n");
+        await mockServer.expectPartial("AUTH XOAUTH2 " + base64Encode(["user=test-username", "auth=Bearer test-username:test-password:token", "", ""].join("\x01")) + "\r\n");
+        await mockServer.send("235 2.7.0 Authentication successful\r\n");
+        await mockClient.expectPartial("235 2.7.0 Authentication successful\r\n");
+
+        await mockServer.expectPartial("MAIL FROM:<from@example.com>\r\n");
+        await mockServer.send("250 2.1.0 Sender OK\r\n");
+        await mockClient.expectPartial("250 2.1.0 Sender OK\r\n");
+
+        await mockServer.expectPartial("RCPT TO:<to@example.com>\r\n");
+        await mockServer.send("250 2.1.5 Recipient OK\r\n");
+        await mockClient.expectPartial("250 2.1.5 Recipient OK\r\n");
+
+        await mockServer.expect("DATA\r\n");
+        await mockServer.send("354 Start mail input; end with <CRLF>.<CRLF>\r\n");
+        await mockClient.expectPartial("354 Start mail input; end with <CRLF>.<CRLF>\r\n");
+
+        await mockServer.expectPartial("From: Me\r\nTo: You\r\nSubject: Test Message\r\nThis is a test message.\r\n..Not so fast.\r\n.\r\n");
+        await mockServer.send("250 2.0.0 OK: Message accepted for delivery\r\n");
+        await mockClient.expectPartial("250 2.0.0 OK: Message accepted for delivery\r\n");
+
+        await mockServer.expect("QUIT\r\n");
+        await mockServer.send("221 Bye\r\n");
+        mockServer.end();
+        await mockClient.expect("221 Bye\r\n");
+
+        await smtpServer.expectEnd();
+        await mockServer.expectEnded();
+        await mockClient.expectEnded();
+
+        await mockServer.close();
+        await mockClient.close();
+        await smtpServer.close();
+    }, 300000);
+
+    test("Check buffered DATA after QUIT handling", async () => {
+        await createMocks(ServerTlsType.Secured, MockServerTlsType.Secured);
+        await Promise.all([mockClient.connect(), mockServer.accept()]);
+
+        await mockServer.send("220 test.local ESMTP\r\n");
+        await mockClient.expect("220-test.local ESMTP\r\n220 Welcome to microsoft-smtp-oauth2-proxy @ smtp.example.com\r\n");
+
+        await mockClient.send("EHLO test.local\r\n");
+        await mockClient.send("QUIT\r\n");
+        await mockClient.send("DATA\r\n");
+
+        await mockServer.expectPartial("EHLO test.local\r\n");
+        await mockServer.send("250-test.local Hello\r\n250 AUTH XOAUTH2\r\n");
+        await mockClient.expectPartial("250-test.local Hello\r\n250 AUTH PLAIN LOGIN\r\n");
+
+        await mockServer.expect("QUIT\r\n");
+        await mockServer.send("221 Bye\r\n");
+        mockServer.end();
+
+        await smtpServer.expectError("Pipeline closed");
+        await mockServer.expectEnded();
+        await mockClient.expectEnded();
+
+        await mockServer.close();
+        await mockClient.close();
+        await smtpServer.close();
+    }, 300000);
+
+    test("Check buffered DATA after STARTTLS handling", async () => {
+        await createMocks(ServerTlsType.StartTls, MockServerTlsType.StartTls);
+        await Promise.all([mockClient.connect(), mockServer.accept()]);
+
+        await mockClient.send("EHLO test.local\r\n");
+        await mockClient.send("STARTTLS\r\n");
+        await mockClient.send("DATA\r\n");
+
+        await mockServer.send("220 test.local ESMTP\r\n");
+        await mockClient.expect("220-test.local ESMTP\r\n220 Welcome to microsoft-smtp-oauth2-proxy @ smtp.example.com\r\n");
+
+        await mockServer.expect("EHLO test.local\r\n");
+        await mockServer.send("250-test.local Hello\r\n250-AUTH XOAUTH2\r\n250 STARTTLS\r\n");
+        await mockClient.expectPartial("250-test.local Hello\r\n250-AUTH PLAIN LOGIN\r\n250 STARTTLS\r\n");
+
+        await mockServer.expect("STARTTLS\r\n");
+        await mockServer.send("220 2.0.0 Ready to start TLS\r\n");
+        await mockClient.expect("220 2.0.0 Ready to start TLS\r\n");
+
+        await smtpServer.expectError();
+        await mockServer.expectEnded();
+        await mockClient.expectEnded();
+
+        await mockServer.close();
+        await mockClient.close();
+        await smtpServer.close();
+    }, 300000);
+
+    test("Check buffered DATA after client-only STARTTLS handling", async () => {
+        await createMocks(ServerTlsType.StartTls, MockServerTlsType.Secured);
+        await Promise.all([mockClient.connect(), mockServer.accept()]);
+
+        await mockClient.send("EHLO test.local\r\n");
+        await mockClient.send("STARTTLS\r\n");
+        await mockClient.send("DATA\r\n");
+
+        await mockServer.send("220 test.local ESMTP\r\n");
+        await mockClient.expect("220-test.local ESMTP\r\n220 Welcome to microsoft-smtp-oauth2-proxy @ smtp.example.com\r\n");
+
+        await mockServer.expect("EHLO test.local\r\n");
+        await mockServer.send("250-test.local Hello\r\n250 AUTH XOAUTH2\r\n");
+        await mockClient.expectPartial("250-test.local Hello\r\n250-AUTH PLAIN LOGIN\r\n250 STARTTLS\r\n");
+
+        await mockClient.expect("220 2.0.0 Ready to start TLS\r\n");
+
+        await smtpServer.expectError();
+        await mockServer.expectEnded();
+        await mockClient.expectEnded();
+
+        await mockServer.close();
+        await mockClient.close();
+        await smtpServer.close();
     }, 300000);
 
 });

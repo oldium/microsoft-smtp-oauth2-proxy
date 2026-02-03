@@ -36,6 +36,35 @@ async function closeSocket(socket?: Socket | null) {
     }
 }
 
+export async function expectReadableEnded(socket: Socket | null) {
+    if (socket && socket.isPaused()) {
+        socket.resume();
+    }
+    if (socket && !socket.readableEnded) {
+        const { promise: endedPromise, resolve, reject } = Promise.withResolvers<void>();
+
+        const timeoutPromise = sleep(5000, () => { throw new Timeout(); });
+
+        const onEnded = () => {
+            resolve();
+        }
+        const onError = (err: Error) => {
+            reject(err);
+        }
+
+        socket.once("end", onEnded);
+        socket.once("error", onError);
+
+        try {
+            await Promise.race([endedPromise, timeoutPromise]);
+        } finally {
+            timeoutPromise.cancel();
+            socket.off("end", onEnded);
+            socket.off("error", onError);
+        }
+    }
+}
+
 async function expectData(socket: Socket, data: string, partial: boolean = false) {
     const { promise: dataPromise, resolve, reject } = Promise.withResolvers<boolean>();
     let buffer = Buffer.alloc(0);
@@ -54,20 +83,26 @@ async function expectData(socket: Socket, data: string, partial: boolean = false
     socket.on("data", onData);
     socket.once("error", onError);
     try {
-        if (await Promise.race([dataPromise, timeoutPromise])) {
-            timeoutPromise.cancel();
-            expect(buffer.toString("binary")).toEqual(data);
+        if (socket.isPaused()) {
+            socket.resume();
         }
-    } catch {
+        await Promise.race([dataPromise, timeoutPromise]);
+    } catch (err) {
         // Ignore timeouts
+        if (!(err instanceof Timeout)) {
+            throw err;
+        }
     } finally {
+        timeoutPromise.cancel();
         socket.off("data", onData);
+        socket.off("error", onError);
     }
+
+    socket.pause();
 
     const received = buffer.toString("binary");
     if (partial && received.length > data.length) {
-        const rest = received.slice(data.length);
-        socket.unshift(rest, "binary");
+        socket.unshift(received.slice(data.length), "binary");
         expect(received.substring(0, data.length)).toEqual(data);
     } else {
         expect(received).toEqual(data);
@@ -172,9 +207,20 @@ export class MockClient {
         }
     }
 
+    public async expectEnded() {
+        this.checkError();
+        await expectReadableEnded(this.socket);
+    }
+
     public async expect(data: string) {
         this.checkError();
         await expectData(this.socket!, data);
+        return this;
+    }
+
+    public async expectPartial(data: string) {
+        this.checkError();
+        await expectData(this.socket!, data, true);
         return this;
     }
 
@@ -280,12 +326,25 @@ export class MockServer {
         this.socket?.end();
     }
 
-    public async expect(data: string, partial: boolean = false) {
-        await expectData(this.socket!, data, partial);
+    public async expectEnded() {
+        await expectReadableEnded(this.socket);
+    }
+
+    public async expect(data: string) {
+        await expectData(this.socket!, data);
+        return this;
+    }
+
+    public async expectPartial(data: string) {
+        await expectData(this.socket!, data, true);
         return this;
     }
 
     public async upgradeToTls() {
+        if (this.socket!.isPaused()) {
+            this.socket!.resume();
+        }
+
         const tlsSocket = new TLSSocket(this.socket!, { ...this.certificate!, isServer: true });
         tlsSocket.allowHalfOpen = true;
 

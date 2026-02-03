@@ -46,10 +46,12 @@ export async function waitSecured(tlsSocket: TLSSocket, isServerSocket: boolean,
     const onClose = () => {
         reject(new ConnectionClosedException('TLS connection closed'));
     }
-    // noinspection DuplicatedCode
     const onError = (err: Error) => {
         reject(err);
     }
+    const onEnded = tlsSocket.allowHalfOpen ? () => {
+        reject(new ConnectionClosedException('TLS connection ended'));
+    } : undefined;
 
     // "secure" event is emitted always, on client socket we want secureConnect
     const onSecure = isServerSocket ? () => {
@@ -64,6 +66,9 @@ export async function waitSecured(tlsSocket: TLSSocket, isServerSocket: boolean,
         .once('close', onClose)
         .once('error', onError);
 
+    if (onEnded) {
+        tlsSocket.once('end', onEnded);
+    }
     if (onSecure) {
         tlsSocket.once('secure', onSecure);
     }
@@ -88,6 +93,9 @@ export async function waitSecured(tlsSocket: TLSSocket, isServerSocket: boolean,
         tlsSocket
             .off('close', onClose)
             .off('error', onError);
+        if (onEnded) {
+            tlsSocket.off('end', onEnded);
+        }
         if (onSecure) {
             tlsSocket.off('secure', onSecure);
         }
