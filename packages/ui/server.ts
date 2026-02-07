@@ -15,6 +15,7 @@ import { userAuth } from "@ms-smtp/lib/auth";
 import { formatAddressPort } from "@ms-smtp/server/smtp/lib/address";
 import { Waitable } from "@ms-smtp/server/smtp/lib/waitable";
 import { refreshFilters } from "@ms-smtp/common/lib/filters";
+import { closeIdleConnections, traceConnections } from "@ms-smtp/lib/shutdown";
 
 const config = await getConfig();
 
@@ -77,6 +78,8 @@ config.http.serverOptions.addresses.forEach((address) => {
         } else {
             httpServer = createHttpServer(expressApp);
         }
+        traceConnections(httpServer);
+
         const httpListening = new Promise<void>((resolve, reject) => {
             httpServer.on("error", reject);
             httpServer.listen(port, ...(address ? [address] : []), () => {
@@ -144,10 +147,10 @@ try {
     await Promise.allSettled(listenPromises);
 }
 
-await refreshJob.stop();
-
+// Stop refresh job and all servers
 const stopPromises = [
-    nextApp.close(),
+    refreshJob.stop(),
+    smtpServer.close(),
     ...httpServers.map((httpServer) => new Promise<void>((resolve, reject) => {
         if (httpServer.listening) {
             httpServer.close((err?: Error) => (err ? reject(err) : resolve()));
@@ -155,8 +158,11 @@ const stopPromises = [
             resolve();
         }
     })),
-    smtpServer.close(),
 ];
+
+// Start closing all idle connections
+closeIdleConnections();
+
 try {
     await Promise.all(stopPromises);
 } catch (err) {
@@ -165,6 +171,14 @@ try {
     await Promise.allSettled(stopPromises);
 }
 
+// Stop Next.js application
+try {
+    await nextApp.close();
+} catch (err) {
+    console.error(err);
+}
+
+// Close the database
 await endDb();
 
 console.log("Terminated");
