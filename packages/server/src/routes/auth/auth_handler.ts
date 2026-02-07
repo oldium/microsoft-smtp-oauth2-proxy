@@ -2,7 +2,7 @@ import { clearAuthorizationSession, exchangeForCredentials, getAuthorizationUrl,
 import { AuthorizationCodePayload } from "@azure/msal-node";
 import _ from "lodash";
 import express from "express";
-import { getUrlNoQuery } from "@ms-smtp/lib/request";
+import { getUriNoQuery } from "@ms-smtp/lib/request";
 import { webSessionFromRequest } from "@ms-smtp/common/lib/websession";
 import { getDbUser, updateDbUserCredentials, User } from "@ms-smtp/common/lib/db";
 import { WebSessionData } from "@ms-smtp/common/lib/state";
@@ -11,7 +11,7 @@ import { EmailNotAllowed } from "@ms-smtp/common/lib/filters";
 import { showNotification } from "@ms-smtp/common/lib/cookies";
 
 export function getAuthUrl(req: express.Request): string {
-    const thisUrl = getUrlNoQuery(req);
+    const thisUrl = getUriNoQuery(req);
     return new URL("/auth", thisUrl).toString();
 }
 
@@ -37,7 +37,7 @@ async function handleAuthResponse(req: express.Request, res: express.Response) {
     try {
         if (params.code) {
             const { uid } = await exchangeForCredentials(
-                getUrlNoQuery(req),
+                getUriNoQuery(req),
                 params,
                 oldSession
             );
