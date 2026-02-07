@@ -3,12 +3,12 @@ import { existsSync as fsExistsSync } from "node:fs";
 import fs from "node:fs/promises";
 import _ from "lodash";
 // noinspection SpellCheckingInspection
-import djson from "dirty-json";
 import yn from "yn";
 import path from "node:path";
 import dns from "node:dns/promises";
 import { isIP } from "node:net";
 import { resolvePath } from "./fs.ts";
+import { parseHumanJsonArray, parseHumanJsonObject } from "./json.ts";
 
 export type MicrosoftAppRegistration = { id: string; secret: string };
 
@@ -94,8 +94,19 @@ async function computeConfig() {
     const development: boolean = process.env.NODE_ENV !== "production";
     const rootDir: string | null = development ? "../.." : null;
 
-    const appsArray: MicrosoftAppRegistration[] = process.env.APP_SECRETS!.split(",").map((app) => {
-            const [id, secret] = app.split(":");
+    let appsMap: Record<string, string>;
+    const appSecretsEnv = process.env.APP_SECRETS!;
+    try {
+        appsMap = parseHumanJsonObject(appSecretsEnv).value;
+        if (_.isEmpty(appsMap)) {
+            console.error("APP_SECRETS must contain at least one Microsoft app registration");
+            process.exit(1);
+        }
+    } catch (err) {
+        console.error(`Unable to parse APP_SECRETS value: ${ err instanceof Error ? err.message : err }`);
+        process.exit(1);
+    }
+    const appsArray: MicrosoftAppRegistration[] = Object.entries(appsMap).map(([id, secret]) => {
             return { id, secret };
         }
     );
@@ -266,24 +277,17 @@ async function computeConfig() {
 
     let sessionSecrets: string[];
     const sessionSecretEnv = process.env.SESSION_SECRET!;
-    if (sessionSecretEnv.startsWith("[") && sessionSecretEnv.endsWith("]")) {
-        sessionSecrets = djson.parse<string[]>(sessionSecretEnv);
-        if (!_.isArray(sessionSecrets)) {
-            console.error("Unable to parse SESSION_SECRET value array");
+    try {
+        sessionSecrets = parseHumanJsonArray(sessionSecretEnv).value;
+        if (sessionSecrets.length === 0) {
+            console.error("Session secret SESSION_SECRET must be provided");
             process.exit(1);
         }
-        if (_.isEmpty(sessionSecrets)) {
-            console.error("Session secret must be provided");
-            process.exit(1);
-        }
-    } else {
-        if (_.isEmpty(sessionSecretEnv)) {
-            console.error("Session secret must be provided");
-            process.exit(1);
-        }
-        sessionSecrets = [sessionSecretEnv];
+    } catch (err) {
+        console.error(`Unable to parse SESSION_SECRET value array: ${ err instanceof Error ? err.message : err }`);
+        process.exit(1);
     }
-    const currentSecret = _.first(sessionSecrets);
+    const currentSecret = sessionSecrets[0];
     if (!currentSecret || currentSecret.length < 32) {
         console.error("Session secret must be at least 32 characters long.");
         process.exit(1);
