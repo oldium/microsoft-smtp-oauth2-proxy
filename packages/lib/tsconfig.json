@@ -16,7 +16,7 @@
     "jsx": "preserve",
     "incremental": true,
     "inlineSourceMap": true,
-    "rootDir": "src",
+    "rootDir": ".",
     "outDir": "dist",
     "declaration": true,
     "declarationMap": true,

@@ -3,8 +3,13 @@
   "compilerOptions": {
     "noEmit": false,
     "incremental": false,
+    "rootDir": "src",
     "customConditions": [
       "production"
     ]
-  }
+  },
+  "exclude": [
+    "src/**/*.test.ts",
+    "tests/**/*.ts"
+  ]
 }

@@ -19,6 +19,7 @@
     "jsx": "react-jsx",
     "incremental": true,
     "inlineSourceMap": true,
+    "rootDir": ".",
     "outDir": "dist",
     "plugins": [
       {

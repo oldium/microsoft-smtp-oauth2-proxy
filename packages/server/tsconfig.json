@@ -16,6 +16,7 @@
     "jsx": "preserve",
     "incremental": true,
     "inlineSourceMap": true,
+    "rootDir": ".",
     "customConditions": [
       "development"
     ]
@@ -23,6 +24,7 @@
   "include": [
     "*.ts",
     "src/**/*.ts",
+    "tests/**/*.ts",
     "../../types/**/*.ts"
   ],
   "exclude": [

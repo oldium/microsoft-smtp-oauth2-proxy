@@ -1,13 +1,13 @@
 import { connect, Server, Socket } from "net";
 import { sleep as libSleep } from "@ms-smtp/lib/sleep";
 import { expect } from "@jest/globals";
-import { tryCloseSocket, waitSecured } from "./socket.ts";
+import { tryCloseSocket, waitSecured } from "../../../src/smtp/lib/socket.ts";
 import { AddressInfo } from "node:net";
 import { Certificate } from "@ms-smtp/common/lib/config";
 import { connect as tlsConnect, TLSSocket } from "tls";
 import { ConnectionOptions } from "node:tls";
-import { SmtpDetectedProtocol, SmtpServer } from "../smtp_server.ts";
-import { Waitable } from "./waitable.ts";
+import { SmtpDetectedProtocol, SmtpServer } from "../../../src/smtp/smtp_server.ts";
+import { Waitable } from "../../../src/smtp/lib/waitable.ts";
 
 /*
 const jestConsole = console;

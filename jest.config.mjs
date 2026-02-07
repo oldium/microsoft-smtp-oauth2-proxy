@@ -34,7 +34,7 @@ const config = {
   testPathIgnorePatterns: [
     "/node_modules/",
     "<rootDir>/packages/server/src/smtp/test.*.ts",
-    "<rootDir>/packages/server/src/smtp/lib/test.ts",
+    "<rootDir>/packages/server/tests/smtp/lib/test.ts",
     "<rootDir>/build/",
     "<rootDir>/?.*/dist/"
   ],

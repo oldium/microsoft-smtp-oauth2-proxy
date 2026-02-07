@@ -2,7 +2,7 @@
 
 import { afterEach, describe, jest, test } from "@jest/globals";
 import console from "console";
-import { base64Encode } from "./lib/base64.ts";
+import { base64Encode } from "../../src/smtp/lib/base64.ts";
 import { MockClient, MockServer, SpySmtpServer } from "./lib/test.ts";
 import { default as _ } from "lodash";
 import { Certificate } from "@ms-smtp/common/lib/config";

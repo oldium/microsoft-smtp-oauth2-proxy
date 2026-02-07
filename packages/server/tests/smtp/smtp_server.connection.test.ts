@@ -7,7 +7,7 @@ import SMTPConnection from "nodemailer/lib/smtp-connection/index.js";
 // noinspection SpellCheckingInspection
 import selfsigned from "selfsigned";
 import { Certificate } from "@ms-smtp/common/lib/config";
-import { createServer as createSmtpServer } from "./smtp_server.ts";
+import { createServer as createSmtpServer } from "../../src/smtp/smtp_server.ts";
 import "./lib/test.ts";
 import { AddressInfo } from "node:net";
 
