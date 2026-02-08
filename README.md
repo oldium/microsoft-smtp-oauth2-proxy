@@ -319,6 +319,17 @@ docker build -t microsoft-smtp-oauth2-proxy .
 
 This will create a Docker image with the name `microsoft-smtp-oauth2-proxy`.
 
+> [!NOTE]
+> The author of Microsoft SMTP OAuth2 Proxy creates the release builds with the
+> following command, which ensures that fresh third-party images are used and
+> adds additional metadata to the Docker image itself:
+>
+> ```bash
+> docker buildx build --progress=plain --attest type=provenance,mode=max \
+>   --attest type=sbom,generator=docker/scout-sbom-indexer:latest \
+>   --no-cache -f .\Dockerfile . -t microsoft-smtp-oauth2-proxy
+> ```
+
 #### Run the Image
 
 The image is started with `/app` as the working directory, so all relative paths
