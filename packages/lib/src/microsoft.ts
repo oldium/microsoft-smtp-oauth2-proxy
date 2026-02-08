@@ -1,7 +1,11 @@
 import { Client } from "@microsoft/microsoft-graph-client";
 import {
+    clearAllDbRetryFlags,
     getDbExpiredUsers,
+    getDbRetryUsers,
     getDbUser,
+    markDbUserDoRetry,
+    markDbUserStopRetry,
     type MicrosoftOAuthCredentials,
     updateDbUserCredentials,
     upsertDbUser,
@@ -43,6 +47,13 @@ const TENANT_ID = "consumers";
 
 type MemoryCachePlugin = ICachePlugin & { cache: string, cacheChanged: boolean };
 type ClientConfiguration = MSALConfiguration & { cache?: { cachePlugin?: MemoryCachePlugin } };
+
+export class NetworkError extends Error {
+    constructor(message: string, options?: ErrorOptions) {
+        super(message, options);
+        this.name = "NetworkError";
+    }
+}
 
 // noinspection JSUnusedLocalSymbols
 function consoleLogger(level: LogLevel, message: string) {
@@ -237,10 +248,10 @@ export async function exchangeForCredentials(
     return { uid, credentials };
 }
 
-export const getAccessToken: (user: User) => Promise<UserToken> = (function () {
+export const getAccessToken: (user: User, retrying?: boolean) => Promise<UserToken> = (function () {
     const limitedFunction = limitNamespace(
         1,
-        async (user: User) => {
+        async (user: User, retrying: boolean | unknown) => {
             const credentials = user.credentials;
             if (_.isNil(credentials.expires)) {
                 throw new Error(`Expired credentials cleaned-up already`);
@@ -266,6 +277,8 @@ export const getAccessToken: (user: User) => Promise<UserToken> = (function () {
                     credentials.cache = cache;
                     credentials.expires = authResult.expiresOn!;
                     await updateUserCredentials(user.uid, username, credentials);
+                } else if (retrying) {
+                    await markDbUserStopRetry(user.uid);
                 }
                 return {
                     username: username,
@@ -277,9 +290,8 @@ export const getAccessToken: (user: User) => Promise<UserToken> = (function () {
                     throw new Error(`Credentials expired: ${ err.message }`);
                 } else if (err instanceof AuthError) {
                     if (err.errorCode === ClientAuthErrorCodes.networkError) {
-                        // TODO: Retry later in upper layer
-                        await updateUserCredentials(user.uid, user.username, { cache: "" });
-                        throw new Error(`Authorization error: ${ err.message }`);
+                        await markDbUserDoRetry(user.uid);
+                        throw new NetworkError(`Authorization error (network): ${ err.message }`, { cause: err });
                     } else {
                         await updateUserCredentials(user.uid, user.username, { cache: "" });
                         throw new Error(`Authorization error: ${ err.message }`);
@@ -290,7 +302,7 @@ export const getAccessToken: (user: User) => Promise<UserToken> = (function () {
             }
         }
     );
-    return async (user: User) => limitedFunction(user.uid, user);
+    return async (user: User, retrying?: boolean) => limitedFunction(user.uid, user, retrying);
 })();
 
 export async function updateUserCredentials(
@@ -319,54 +331,138 @@ export function getMicrosoftGraphClient(accessToken: string) {
     });
 }
 
-export async function refreshAllExpiredUserCredentialsJob() {
-    // TODO: For more users this probably should do a batch refresh
-    const expiredUsers = await getDbExpiredUsers();
-    const promises = expiredUsers.map(async (user) => {
+export async function refreshUserCredentials(users: User[], retrying?: boolean) {
+    let needRetry = false;
+    const promises = users.map(async (user) => {
         try {
-            await getAccessToken(user);
+            await getAccessToken(user, retrying);
         } catch (err) {
-            console.warn(`Failed to refresh credentials for ${ user.email }: ${ (err instanceof Error && err.message) || err }`);
+            if (err instanceof NetworkError) {
+                console.info(`Unsuccessful refreshing of credentials for ${ user.email }, will retry in 10 minutes due to error: ${ err.message }`);
+                needRetry = true;
+            } else {
+                console.warn(`Failed to retry refresh credentials for ${ user.email }: ${ (err instanceof Error && err.message) || err }`);
+            }
         }
     });
     await Promise.allSettled(promises);
+    return needRetry;
 }
 
-export function startRefreshJob(): { stop: () => Promise<void> } {
-    const job: { id: NodeJS.Timeout | undefined, running: Promise<unknown> | false } = {
+function prepareRetryRefreshJob() {
+    const job: {
+        id: NodeJS.Timeout | undefined,
+        running: Promise<unknown> | false,
+        runAgain: boolean,
+        stopped: boolean,
+    } = {
         id: undefined,
         running: false,
+        runAgain: false,
+        stopped: false,
     };
 
-    // Refresh all tokens on start
-    process.nextTick(async () => {
+    async function refresh() {
         if (!job.running) {
-            job.running = refreshAllExpiredUserCredentialsJob();
-            await job.running;
+            const { promise, resolve: finished } = Promise.withResolvers<void>();
+            job.running = promise;
+            job.runAgain = false;
+            try {
+                const users = await getDbRetryUsers();
+                if (users.length > 0) {
+                    const runAgain = await refreshUserCredentials(users, true);
+                    job.runAgain ||= runAgain;
+                }
+            } catch (err) {
+                console.error(`Failed to refresh credentials: ${ (err instanceof Error && err.message) || err }`);
+            }
+            if (job.runAgain) {
+                job.runAgain = false;
+            } else {
+                clearInterval(job.id);
+                job.id = undefined;
+            }
             job.running = false;
+            finished();
         }
-    });
-
-    // Periodic refresh. Access token lasts 1 hour, refresh token 24 hours or 90 days (unable to check the actual value).
-    // So refresh every 22 hours (if we check at the end of access token life, we will re-check in 22 hours, so there is
-    // still 24 - 1 - 22 = 1 hour to finish the refresh).
-    // https://learn.microsoft.com/en-us/entra/identity-platform/refresh-tokens
-    job.id = setInterval(async () => {
-        if (!job.running) {
-            job.running = refreshAllExpiredUserCredentialsJob();
-            await job.running;
-            job.running = false;
-        }
-    }, 22 * 60 * 60 * 1000);
+    }
 
     return {
         stop: async () => {
+            job.stopped = true;
             if (job.id !== undefined) {
                 clearInterval(job.id);
+                job.id = undefined;
             }
             if (job.running) {
                 await job.running;
             }
+        },
+        restart: () => {
+            if (!job.stopped) {
+                 if (job.id === undefined) {
+                     job.id = setInterval(refresh.bind(null), 10 * 60 * 1000);
+                 } else {
+                     job.runAgain = true;
+                 }
+            }
+        }
+    };
+}
+
+export function startMainRefreshJob(): { stop: () => Promise<void> } {
+    const job: {
+        id: NodeJS.Timeout | undefined,
+        running: Promise<unknown> | false,
+        initial: boolean,
+    } = {
+        id: undefined,
+        running: false,
+        initial: true,
+    };
+
+    const retry = prepareRetryRefreshJob();
+
+    async function refresh() {
+        if (job.running === false) {
+            const { promise, resolve: finished } = Promise.withResolvers<void>();
+            job.running = promise;
+
+            let needRetry = false;
+            try {
+                if (job.initial) {
+                    await clearAllDbRetryFlags();
+                    job.initial = false;
+                }
+                const expiredUsers = await getDbExpiredUsers();
+                needRetry = await refreshUserCredentials(expiredUsers);
+            } catch (err) {
+                console.error(`Failed to refresh credentials: ${ (err instanceof Error && err.message) || err }`);
+            }
+            if (needRetry) {
+                retry.restart();
+            }
+            job.running = false;
+            finished();
+        }
+    }
+
+    // Refresh all tokens on start
+    process.nextTick(refresh.bind(null));
+
+    // Periodic refresh. Access token lasts 1 hour, refresh token assumed 24 hours.
+    // So refresh every 21 hours (24 - 1 - 2 = 21 hours with 2 hours reserve for retries).
+    // https://learn.microsoft.com/en-us/entra/identity-platform/refresh-tokens
+    job.id = setInterval(refresh.bind(null), 21 * 60 * 60 * 1000);
+
+    return {
+        stop: async () => {
+            const retryStop = retry.stop();
+            if (job.id !== undefined) {
+                clearInterval(job.id);
+                job.id = undefined;
+            }
+            await Promise.allSettled([ retryStop, job.running ]);
         }
     };
 }

@@ -4,7 +4,7 @@ import { createServer as createHttpsServer } from "https";
 import next from "next";
 import { getConfig, type TcpServerOptions } from "@ms-smtp/common/lib/config";
 import { endDb, getDb } from "@ms-smtp/common/lib/db";
-import { init as initMicrosoft, startRefreshJob } from "@ms-smtp/lib/microsoft";
+import { init as initMicrosoft, startMainRefreshJob } from "@ms-smtp/lib/microsoft";
 import express from "express";
 import routes from "@ms-smtp/server/routes/index";
 import { parse } from "node:url";
@@ -42,10 +42,8 @@ await initMicrosoft();
 // Start-up
 await nextApp.prepare();
 
-// Refresh all tokens. Access token lasts 1 hour, refresh token 24 hours or 90 days (unable to check the actual value).
-// So refresh every 22 hours (if we check at the end of access token life, we will re-check in 22 hours, so there is
-// still 24 - 1 - 22 = 1 hour to finish the refresh).
-const refreshJob = startRefreshJob();
+// Token refresh job
+const refreshJob = startMainRefreshJob();
 
 // Prepare API routes
 const expressApp = express();
