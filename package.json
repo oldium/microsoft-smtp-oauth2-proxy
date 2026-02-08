@@ -14,7 +14,7 @@
   ],
   "scripts": {
     "dev": "npm run dev --workspace packages/ui",
-    "test": "node --conditions=development --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --colors --verbose --detectOpenHandles --workerThreads",
+    "test": "node --conditions=development --experimental-vm-modules --disable-warning=ExperimentalWarning node_modules/jest/bin/jest.js --colors --verbose --detectOpenHandles --workerThreads",
     "build": "cross-env NODE_ENV=production npm run build --workspaces --if-present",
     "pack": "npm pack --workspace packages/common && npm pack --workspace packages/lib && npm pack --workspace packages/server",
     "build:release": "node --import=@swc-node/register/esm-register --enable-source-maps ./build.ts",

@@ -17,7 +17,6 @@ export default () => {
         output: "standalone",
         // Ensure we can import the local server package from server components without bundling it
         serverExternalPackages: [
-            "@vscode/sqlite3",
             "@ms-smtp/common",
             "@ms-smtp/lib",
             "@ms-smtp/server",
