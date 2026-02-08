@@ -17,7 +17,7 @@
     }
   },
   "dependencies": {
-    "@azure/msal-node": "^5.0.2",
+    "@azure/msal-node": "^5.0.3",
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "@ms-smtp/common": "0.0.0",
     "cors": "^2.8.6",
@@ -26,16 +26,14 @@
     "ipaddr.js": "^2.3.0",
     "iron-session": "^8.0.4",
     "lodash": "^4.17.23",
-    "p-limit": "^7.2.0"
+    "p-limit": "^7.3.0"
   },
   "devDependencies": {
     "@types/lodash": "^4.17.23",
     "cross-env": "^10.1.0",
-    "eslint": "^9.39.2",
-    "next": "^16.1.5",
+    "next": "^16.1.6",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.54.0"
+    "typescript": "^5.9.3"
   }
 }

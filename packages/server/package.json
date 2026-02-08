@@ -27,7 +27,6 @@
   "dependencies": {
     "@ms-smtp/common": "0.0.0",
     "@ms-smtp/lib": "0.0.0",
-    "cookies-next": "^6.1.1",
     "email-addresses": "^5.0.0",
     "express": "^5.2.1",
     "ipaddr.js": "^2.3.0",
@@ -43,13 +42,8 @@
     "@types/lodash": "^4.17.23",
     "@types/smtp-server": "^3.5.12",
     "cross-env": "^10.1.0",
-    "eslint": "^9.39.2",
-    "next": "^16.1.5",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
     "selfsigned": "^5.5.0",
-    "smtp-server": "^3.18.0",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.54.0"
+    "smtp-server": "^3.18.1",
+    "typescript": "^5.9.3"
   }
 }
