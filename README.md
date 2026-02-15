@@ -291,7 +291,7 @@ rest of the options are the same as for the SSL/TLS connection.
 To build the production version of the application, run:
 
 ```bash
-npm run build
+npm run build:release
 ```
 
 This will create a production build in the `dist` directory. The application can
