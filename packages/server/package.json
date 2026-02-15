@@ -11,7 +11,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "cross-env NODE_ENV=production tsc --project ./tsconfig.bin.json && cross-env NODE_ENV=production tsc --project ./tsconfig.src.json",
+    "build": "cross-env NODE_ENV=production tsc --project ./tsconfig.src.json",
     "clean": "rimraf ./dist"
   },
   "exports": {
