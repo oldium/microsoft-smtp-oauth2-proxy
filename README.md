@@ -163,9 +163,11 @@ In order to register the application, do the following:
 > not work. The redirect URI must be HTTPS for production (more precisely for
 > any non-localhost address), otherwise the login will not work. The host part
 > of the URI is constructed by the application from the requests, so it is
-> necessary that the `Host:` HTTP header is correct or that the `X-Forwarded-*:`
-> proxy headers are set correctly. The proxy headers `X-Forwarded-*:` have
-> precedence over the `Host:` header.
+> necessary that the `Host` HTTP header is correct or that the `X-Forwarded-*`
+> proxy headers are set correctly. The proxy headers `X-Forwarded-*` have
+> precedence over the `Host` header. When forwarding `X-Forwarded-*` headers
+> from a reverse proxy, make sure to configure `TRUST_PROXY` in `.env` (see
+> [`.env.example`][env-example]), otherwise the headers are ignored.
 
 > [!TIP]
 > One common gotcha is that you have http://localhost:3000/auth in the redirect
@@ -174,6 +176,11 @@ In order to register the application, do the following:
 > application URI must match exactly the configured redirect URI (including the
 > protocol), so the login will not work. The easiest fix for this is to include
 > both redirect URIs in the setup if possible.
+>
+> Another common gotcha is forwarding `X-Forwarded-*` headers from a reverse
+> proxy but not configuring `TRUST_PROXY`. In that case the headers are
+> ignored, so the redirect URI is constructed from the request as seen by the
+> application and will not match the external URL configured in Azure.
 
 [create-azure]: https://azure.microsoft.com/en-us/pricing/purchase-options/azure-account
 
@@ -548,7 +555,8 @@ actual remote IP address.
 > [!TIP]
 > If you are forwarding HTTP traffic to the SMTP proxy via HAProxy too, ensure
 > that the backend section contains the `X-Forwarded-*` headers like in this
-> SSL/TLS termination example:
+> SSL/TLS termination example. Make sure `TRUST_PROXY` is configured in `.env`
+> (see [`.env.example`][env-example]), otherwise forwarded headers are ignored.
 >
 > ```text
 > frontend in-https
@@ -575,6 +583,11 @@ actual remote IP address.
 >         http-request set-header X-Forwarded-Ssl on
 >         server out-smtp-http smtp-proxy:3000
 > ```
+
+> [!IMPORTANT]
+> When forwarding `X-Forwarded-*` headers from HAProxy, configure
+> `TRUST_PROXY` in `.env` (see [`.env.example`][env-example]); otherwise the
+> forwarded headers are ignored.
 
 [proxy-proto]: https://www.haproxy.org/download/2.4/doc/proxy-protocol.txt
 

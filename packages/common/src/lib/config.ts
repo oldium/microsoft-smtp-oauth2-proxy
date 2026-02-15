@@ -9,6 +9,7 @@ import dns from "node:dns/promises";
 import { isIP } from "node:net";
 import { resolvePath } from "./fs.ts";
 import { parseHumanJsonArray, parseHumanJsonObject } from "./json.ts";
+import proxyAddr from "proxy-addr";
 
 export type MicrosoftAppRegistration = { id: string; secret: string };
 
@@ -21,7 +22,10 @@ export type TcpSecureServerOptions = TcpServerOptions & Certificate;
 export type Http = {
     secure: boolean,
     serverOptions: TcpSecureServerOptions,
+    trustProxy?: IpCheckFn,
 };
+
+export type IpCheckFn = (addr: string, i: number) => boolean;
 
 export type SmtpTcpServerOptions = {
     serverOptions: TcpServerOptions,
@@ -265,6 +269,17 @@ async function computeConfig() {
     const httpListenHosts = formatListenHosts(httpListenHostsString);
     const httpListenAddresses = (httpListenHostsString === smtpListenHostsString) ? _.clone(smtpListenAddresses) : await resolveListenHosts(httpListenHostsString);
     const httpListenPorts = parsePortList(process.env.HTTP_PORT, 3000);
+    const trustProxyEnv = process.env.TRUST_PROXY;
+    let trustProxyArray: string[] = [];
+    try {
+        trustProxyArray = parseHumanJsonArray(trustProxyEnv).value
+            .map((ip) => ip.trim())
+            .filter(Boolean);
+    } catch (err) {
+        console.error(`Unable to parse TRUST_PROXY value array: ${ err instanceof Error ? err.message : err }`);
+        process.exit(1);
+    }
+    const trustProxy = !_.isEmpty(trustProxyArray) ? proxyAddr.compile(trustProxyArray) : undefined;
     const http: Http = {
         secure: withHttps,
         serverOptions: {
@@ -272,7 +287,8 @@ async function computeConfig() {
             addresses: httpListenAddresses,
             ports: httpListenPorts,
             ...httpsCertificate
-        }
+        },
+        trustProxy,
     }
 
     let sessionSecrets: string[];

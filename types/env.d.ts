@@ -28,6 +28,7 @@ declare namespace NodeJS {
         HTTP_PORT?: string;
         HTTPS_KEY_FILE?: string;
         HTTPS_CERT_FILE?: string;
+        TRUST_PROXY?: string;
         WEB_HAS_TLS?: string;
         WEB_HAS_STARTTLS?: string;
         WEB_COUNT_PORTS?: string;

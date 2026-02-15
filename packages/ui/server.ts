@@ -52,6 +52,10 @@ const refreshJob = startMainRefreshJob();
 // Prepare API routes
 const expressApp = express();
 expressApp.enable("strict routing");
+expressApp.disable("x-powered-by");
+if (config.http.trustProxy) {
+    expressApp.set("trust proxy", config.http.trustProxy);
+}
 expressApp.use(routes());
 
 expressApp.use(async (req, res) => {
