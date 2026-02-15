@@ -27,11 +27,13 @@ export class GraphemeScanner {
     // Grapheme segmenter (locale-neutral)
     private readonly segmenter = new Intl.Segmenter("und", { granularity: "grapheme" });
 
-    constructor(private readonly str: string) {
+    constructor(private readonly str: string | undefined) {
         // Materialize segments so we have a stable index for CU boundaries.
         // Performance is fine per your constraints.
-        for (const seg of this.segmenter.segment(str)) {
-            this.segments.push({ segment: seg.segment, index: seg.index });
+        if (str) {
+            for (const seg of this.segmenter.segment(str)) {
+                this.segments.push({ segment: seg.segment, index: seg.index });
+            }
         }
     }
 
@@ -85,7 +87,7 @@ export class GraphemeScanner {
         const endCu =
             this.segPos + 1 < this.segments.length
                 ? this.segments[this.segPos + 1].index
-                : this.str.length;
+                : (this.str?.length ?? 0);
 
         const token: Token = {
             ch: segment,
@@ -173,7 +175,7 @@ class HumanJsonParser {
     private readonly cur: GraphemeScanner;
 
     constructor(
-        private readonly input: string
+        private readonly input: string | undefined
     ) {
         this.cur = new GraphemeScanner(this.input);
     }
@@ -350,7 +352,7 @@ class HumanJsonParser {
         }
 
         const endCu = this.cur.pos().indexCu; // after closing quote
-        const token = this.input.slice(startCu, endCu);
+        const token = this.input!.slice(startCu, endCu);
 
         let parsed: string;
         try {
@@ -424,7 +426,7 @@ class HumanJsonParser {
 
         if (lastNonWsEndCu < 0) this.err(`Empty unquoted ${ this.getItemName(what) }`, startPos);
 
-        const raw = this.input.slice(startCu, lastNonWsEndCu);
+        const raw = this.input!.slice(startCu, lastNonWsEndCu);
         const delim = this.cur.peek();
         if (!delim || !delimiters.has(delim.ch)) this.err(`Reached end of input while parsing ${ this.getItemName(what) }`, startPos);
         return raw;
@@ -481,7 +483,7 @@ class HumanJsonParser {
     }
 }
 
-function parseHumanJsonCore(input: string, kind: JsonTopLevelKind): RepairResult {
+function parseHumanJsonCore(input: string | undefined, kind: JsonTopLevelKind): RepairResult {
     const parser = new HumanJsonParser(input);
     switch (kind) {
         case "object":
@@ -491,17 +493,17 @@ function parseHumanJsonCore(input: string, kind: JsonTopLevelKind): RepairResult
     }
 }
 
-export function parseHumanJson(input: string, kind: "object"): RepairResultObject;
-export function parseHumanJson(input: string, kind: "array"): RepairResultArray;
-export function parseHumanJson(input: string, kind: JsonTopLevelKind): RepairResult;
-export function parseHumanJson(input: string, kind: JsonTopLevelKind): RepairResult {
+export function parseHumanJson(input: string | undefined, kind: "object"): RepairResultObject;
+export function parseHumanJson(input: string | undefined, kind: "array"): RepairResultArray;
+export function parseHumanJson(input: string | undefined, kind: JsonTopLevelKind): RepairResult;
+export function parseHumanJson(input: string | undefined, kind: JsonTopLevelKind): RepairResult {
     return parseHumanJsonCore(input, kind);
 }
 
-export function parseHumanJsonObject(input: string): RepairResultObject {
+export function parseHumanJsonObject(input?: string | undefined): RepairResultObject {
     return parseHumanJson(input, "object");
 }
 
-export function parseHumanJsonArray(input: string): RepairResultArray {
+export function parseHumanJsonArray(input?: string | undefined): RepairResultArray {
     return parseHumanJson(input, "array");
 }

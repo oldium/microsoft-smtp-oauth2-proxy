@@ -95,7 +95,7 @@ async function computeConfig() {
     const rootDir: string | null = development ? "../.." : null;
 
     let appsMap: Record<string, string>;
-    const appSecretsEnv = process.env.APP_SECRETS!;
+    const appSecretsEnv = process.env.APP_SECRETS;
     try {
         appsMap = parseHumanJsonObject(appSecretsEnv).value;
         if (_.isEmpty(appsMap)) {
@@ -276,7 +276,7 @@ async function computeConfig() {
     }
 
     let sessionSecrets: string[];
-    const sessionSecretEnv = process.env.SESSION_SECRET!;
+    const sessionSecretEnv = process.env.SESSION_SECRET;
     try {
         sessionSecrets = parseHumanJsonArray(sessionSecretEnv).value;
         if (sessionSecrets.length === 0) {
