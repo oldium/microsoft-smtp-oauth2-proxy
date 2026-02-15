@@ -2,6 +2,10 @@ FROM node:24-trixie-slim AS builder
 
 WORKDIR /build
 
+ENV NPM_CONFIG_UPDATE_NOTIFIER=false
+
+RUN npm install -g npm@latest
+
 # Copy package files and install dependencies
 COPY --chmod=u=rw,go=r package*.json ./
 COPY --chmod=u=rw,go=r packages/common/package*.json ./packages/common/
@@ -31,7 +35,7 @@ RUN apt update \
 
 WORKDIR /app
 
-RUN npm install -g npm@latest
+RUN NPM_CONFIG_UPDATE_NOTIFIER=false npm install -g npm@latest
 
 COPY --from=builder --chown=node:node /build/dist/ /app
 COPY --chmod=u=rwx,go=rx ./entrypoint.sh /entrypoint.sh
