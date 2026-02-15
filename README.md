@@ -24,12 +24,16 @@ server. The proxy server supports the following features:
   API.
 * 🐋 Docker-ready.
 * ✉️ Sending emails using the SMTP protocol.
-* 📬 Unprotected port for local trusted clients.
+* 📬 Optional unprotected port for local trusted clients.
 * 💡 Mixed-mode operation with independent SSL/TLS and STARTTLS connections for
   client and downstream server.
 * 🎉 Allows to use single port for SSL/TLS (a.k.a. implicit TLS) and STARTTLS
   connections (see `SMTP_AUTOTLS_PORT` variable in
   [`.env.example`][env-example]).
+* 🔁 Automatic retry on transient network errors when refreshing OAuth2
+  authentication tokens from Microsoft.
+* 🛡️ Safer proxy handling by ignoring untrusted `X-Forwarded-*` headers.
+* 🧹 Graceful shutdown that terminates idle connections.
 
 Supported SMTP features:
 
