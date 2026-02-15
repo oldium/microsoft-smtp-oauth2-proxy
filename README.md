@@ -29,7 +29,7 @@ server. The proxy server supports the following features:
   client and downstream server.
 * 🎉 Allows to use single port for SSL/TLS (a.k.a. implicit TLS) and STARTTLS
   connections (see `SMTP_AUTOTLS_PORT` variable in
-  [`env.example`][env-example]).
+  [`.env.example`][env-example]).
 
 Supported SMTP features:
 
@@ -46,7 +46,7 @@ Supported SMTP features:
   server, like 8bit encoding, UTF8 and the like (the messages and replies are
   simply forwarded).
 
-[env-example]: https://github.com/oldium/microsoft-smtp-oauth2-proxy/blob/master/env.example
+[env-example]: https://github.com/oldium/microsoft-smtp-oauth2-proxy/blob/master/.env.example
 
 [draft-murchison-sasl-login-00]: https://datatracker.ietf.org/doc/html/draft-murchison-sasl-login-00
 
@@ -82,12 +82,10 @@ First, install the dependencies:
 npm install
 ```
 
-Then configure the server. Look at the [`env.example`][env-example] in the
-project root and copy it to `env`. The project does not use dot-env file
-(`.env`), because it is automatically picked by Next.js and included in the
-build, which is not desired. The minimal configuration looks like this:
+Then configure the server. Look at the [`.env.example`][env-example] in the
+project root and copy it to `.env`. The minimal configuration looks like this:
 
-`env`:
+`.env`:
 
 ```dotenv
 APP_SECRETS=will-configure:later
@@ -100,7 +98,7 @@ To generate the session secret, you can use
 [1password online service][onepass-online]. The session secret is used to
 encrypt the session cookie. Minimum of 32 characters gives you enough entropy
 for the encryption (at least for now). You can use special characters, but read
-the example documentation carefully on how to write it in the `env` file.
+the example documentation carefully on how to write it in the `.env` file.
 
 Then, run the development server:
 
@@ -146,11 +144,11 @@ In order to register the application, do the following:
    login. Select <q>Personal Microsoft accounts only</q> as the personal account
    type. Keep redirect URI empty, we will configure it later.
 5. Note the <q>Application (client) ID</q> on the <q>Overview</q> page, this is
-   the `application-id` referred in the `env` example file.
+   the `application-id` referred in the `.env.example` file.
 6. Go to <q>Certificates & secrets</q> and create a new client secret. Note the
-   secret <q>Value</q> (not the ID), this is the `secret` referred in the `env`
-   example file. You can have one secret for development and one for production.
-   Azure supports up to 2 secrets per application.
+   secret <q>Value</q> (not the ID), this is the `secret` referred in the
+   `.env.example` file. You can have one secret for development and one for
+   production. Azure supports up to 2 secrets per application.
 7. Go to <q>API permissions</q> and add <q>Microsoft Graph</q> API with
    <q>SMTP.Send</q> permission. This is needed to send emails using the OAuth2
    authentication.
@@ -305,9 +303,9 @@ npm run prod
 ```
 
 This expects that the correct environment variables are set for the production.
-Either modify the generated `env` file (it contains few mandatory values to set
-up production), or simply ensure that the environment variables are set before
-the command is executed. This is suitable especially for the Docker environment.
+Either modify the generated `.env` file (it contains few mandatory values to set
+up production), or ensure that the environment variables are set before the
+command is executed. This is suitable especially for the Docker environment.
 
 ### Docker Build
 
@@ -346,7 +344,7 @@ docker run -p 80:3000 -p <host port>:<app port> ... \
 ```
 
 For possible environmental variables and their values `-e <variable>=<value>`
-see [`env.example`][env-example] file in the project root.
+see [`.env.example`][env-example] file in the project root.
 
 #### SSL/TLS and STARTTLS Ports Exposed
 

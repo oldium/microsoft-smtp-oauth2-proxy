@@ -1,4 +1,4 @@
-import "localenv";
+import dotenv from "dotenv";
 import { createServer as createHttpServer, Server } from "http";
 import { createServer as createHttpsServer } from "https";
 import next from "next";
@@ -17,6 +17,10 @@ import { Waitable } from "@ms-smtp/server/smtp/lib/waitable";
 import { refreshFilters } from "@ms-smtp/common/lib/filters";
 import { closeIdleConnections, traceConnections } from "@ms-smtp/lib/shutdown";
 
+dotenv.config({ quiet: true });
+if (process.env.NODE_ENV != "production") {
+    dotenv.config({ path: "../../.env", quiet: true });
+}
 const config = await getConfig();
 
 // noinspection SpellCheckingInspection

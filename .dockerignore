@@ -11,5 +11,6 @@
 **/dist
 **/node_modules
 /Dockerfile
+/.env*
 /env*
 /ms-smtp-*.tgz

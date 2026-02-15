@@ -144,4 +144,4 @@ for (const file of binFiles) {
 }
 
 // Create file env with production environment variables
-await fs.writeFile('./dist/env', 'NODE_ENV=production\nNEXT_MANUAL_SIG_HANDLE=true\nNEXT_TELEMETRY_DISABLED=1\n');
+await fs.writeFile('./dist/.env', 'NODE_ENV=production\nNEXT_MANUAL_SIG_HANDLE=true\nNEXT_TELEMETRY_DISABLED=1\n');

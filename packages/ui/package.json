@@ -7,22 +7,22 @@
     "server": "./dist/bin/server.js"
   },
   "scripts": {
-    "dev": "node --conditions development --env-file=../../env.development --env-file=../../env --enable-source-maps --disable-warning=ExperimentalWarning --import=@swc-node/register/esm-register ./server.ts",
+    "dev": "node --conditions development --env-file=../../.env.development --enable-source-maps --disable-warning=ExperimentalWarning --import=@swc-node/register/esm-register ./server.ts",
     "dev:next": "cross-env NODE_ENV=development NEXT_TELEMETRY_DISABLED=1 next dev",
     "build": "cross-env NODE_ENV=production tsc --project ./tsconfig.bin.json",
     "build:next": "cross-env NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 NODE_OPTIONS=--disable-warning=ExperimentalWarning next build",
-    "prod": "node --env-file=./env --disable-warning=ExperimentalWarning ./dist/bin/server.js"
+    "prod": "node --disable-warning=ExperimentalWarning ./dist/bin/server.js"
   },
   "dependencies": {
     "@ms-smtp/common": "0.0.0",
     "@ms-smtp/lib": "0.0.0",
     "@ms-smtp/server": "0.0.0",
     "clsx": "^2.1.1",
+    "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "geist": "^1.7.0",
     "html-react-parser": "^5.2.17",
     "iron-session": "^8.0.4",
-    "localenv": "^0.2.2",
     "lucide-react": "^0.564.0",
     "marked": "^17.0.2",
     "next": "^16.1.6",
