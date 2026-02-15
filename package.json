@@ -20,7 +20,9 @@
     "build:release": "node --import=@swc-node/register/esm-register --enable-source-maps ./build.ts",
     "clean": "npm run clean --workspaces --if-present && rimraf ./dist",
     "analyze": "cross-env ANALYZE=true node --import=@swc-node/register/esm-register --enable-source-maps ./build.ts",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test-send-auth": "npm run --workspace packages/server test-send-auth",
+    "test-send-db": "npm run --workspace packages/server test-send-db"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",

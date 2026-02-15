@@ -181,8 +181,8 @@ In order to register the application, do the following:
 
 ## Testing the SMTP Proxy Locally
 
-The SMTP proxy can be tested using the internal tools or
-by [Swiss Army Knife SMTP][swaks-web] (`swaks`).
+The SMTP proxy can be tested using the internal tools during development or
+anytime by [Swiss Army Knife SMTP][swaks-web] (`swaks`).
 
 ### test-send-db tool
 
@@ -190,8 +190,7 @@ This tool uses the SQLite database and SMTP proxy configuration to send the
 email.
 
 ```bash
-node --import=@swc-node/register/esm-register \
-  server/smtp/test-send-db.ts <from> <to>
+npm run test-send-db <from> <to>
 ```
 
 The `<from>` is either an email address, or a username and the email address in
@@ -205,9 +204,7 @@ This tool does not use any internal configuration, it just acts as an SMTP
 client, which wants to send an email.
 
 ```bash
-node --import=@swc-node/register/esm-register \
-  server/smtp/test-send-auth.ts localhost:<port> \
-  <from> <password> <to> [<subject> [<message>]]
+npm run test-send-auth localhost:<port> <from> <password> <to> [<subject> [<message>]]
 ```
 
 For the `<port>` value use `SMTP_PORT` value from the configuration (or other

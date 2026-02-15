@@ -1,4 +1,4 @@
-import "localenv";
+import dotenv from "dotenv";
 import nodemailer from "nodemailer";
 import { endDb, getDbUserByEmail } from "@ms-smtp/common/lib/db";
 import { getConfig } from "@ms-smtp/common/lib/config";
@@ -6,11 +6,12 @@ import emailAddresses from "email-addresses";
 import SMTPConnection from "nodemailer/lib/smtp-connection/index.js";
 import assert from "node:assert";
 
+dotenv.config({ path: ["../../.env"], quiet: true });
 const config = await getConfig();
 const [from, to] = process.argv.slice(2);
 
 if (!from || !to) {
-    console.error("Usage: node --import=@swc-node/register/esm-register test-send-db.ts <from> <to>");
+    console.error("Usage: npm run test-send-db <from> <to>");
     process.exit(1);
 }
 

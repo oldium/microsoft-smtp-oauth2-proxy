@@ -12,7 +12,9 @@
   ],
   "scripts": {
     "build": "cross-env NODE_ENV=production tsc --project ./tsconfig.src.json",
-    "clean": "rimraf ./dist"
+    "clean": "rimraf ./dist",
+    "test-send-auth": "node --conditions development --enable-source-maps --disable-warning=ExperimentalWarning --import=@swc-node/register/esm-register test-send-auth.ts",
+    "test-send-db": "node --conditions development --enable-source-maps --disable-warning=ExperimentalWarning --import=@swc-node/register/esm-register test-send-db.ts"
   },
   "exports": {
     "./routes": {
@@ -27,6 +29,7 @@
   "dependencies": {
     "@ms-smtp/common": "0.0.0",
     "@ms-smtp/lib": "0.0.0",
+    "dotenv": "^17.3.1",
     "email-addresses": "^5.0.0",
     "express": "^5.2.1",
     "ipaddr.js": "^2.3.0",

@@ -1,4 +1,3 @@
-import "localenv";
 import nodemailer from "nodemailer";
 import emailAddresses from "email-addresses";
 import SMTPConnection from "nodemailer/lib/smtp-connection/index.js";
@@ -6,7 +5,7 @@ import SMTPConnection from "nodemailer/lib/smtp-connection/index.js";
 const [hostPort, from, password, to, subject, message] = process.argv.slice(2);
 
 if (!hostPort || hostPort.split(":").length != 2 || !from || !to || !password) {
-    console.error("Usage: node --import=@swc-node/register/esm-register test-send-auth.ts <host>:<port> <from> <password> <to> [<subject> [<message>]]");
+    console.error("Usage: npm run test-send-auth <host>:<port> <from> <password> <to> [<subject> [<message>]]");
     console.error();
     console.error("User name is taken from the <from> address");
     process.exit(1);
