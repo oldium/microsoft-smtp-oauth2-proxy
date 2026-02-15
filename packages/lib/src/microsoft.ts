@@ -24,14 +24,13 @@ import {
     InteractionRequiredAuthError
 } from "@azure/msal-node";
 import _ from "lodash";
-import { getConfig } from "@ms-smtp/common/lib/config";
 import { LogLevel } from "@azure/msal-common";
 import { WebSessionData } from "@ms-smtp/common/lib/state";
 import { cryptoRandomStringAsync } from "crypto-random-string";
 import { ICachePlugin } from "@azure/msal-common/node";
 import { applyFilters } from "@ms-smtp/common/lib/filters";
-
-const config = await getConfig();
+import assert from "node:assert";
+import { getConfig } from "@ms-smtp/common/lib/config";
 
 type MicrosoftAppRegistration = { id: string; secret: string };
 
@@ -92,22 +91,27 @@ function memoryCachePlugin(tokens?: string): MemoryCachePlugin {
     };
 }
 
-const msalConfigDefaults: ClientConfiguration = {
-    auth: {
-        clientId: "",
-        authority: `https://login.microsoftonline.com/${ TENANT_ID }`,
-    },
-    cache: {},
-    system: {
-        loggerOptions: {
-            loggerCallback: consoleLogger,
-            piiLoggingEnabled: config.development,
-            logLevel: config.development ? LogLevel.Verbose : LogLevel.Info,
-        },
-    },
-};
+let msalConfigDefaults: ClientConfiguration | undefined = undefined;
 
 export async function init() {
+    assert(msalConfigDefaults === undefined);
+
+    const config = await getConfig();
+    msalConfigDefaults = {
+        auth: {
+            clientId: "",
+            authority: `https://login.microsoftonline.com/${ TENANT_ID }`,
+        },
+        cache: {},
+        system: {
+            loggerOptions: {
+                loggerCallback: consoleLogger,
+                piiLoggingEnabled: config.development,
+                logLevel: config.development ? LogLevel.Verbose : LogLevel.Info,
+            },
+        },
+    };
+
     const res = await fetch(`${ msalConfigDefaults.auth.authority }/v2.0/.well-known/openid-configuration`);
     if (!res.ok) {
         throw new Error("Failed to fetch Microsoft login endpoints.");
@@ -115,12 +119,16 @@ export async function init() {
     msalConfigDefaults.auth.authorityMetadata = await res.text();
 }
 
-export function getApp(id?: string): MicrosoftAppRegistration {
+export async function getApp(id?: string): Promise<MicrosoftAppRegistration> {
+    const config = await getConfig();
     return (id ? config.apps.all[id] : undefined) ?? config.apps.default;
 }
 
-function getMsalConfig(app: MicrosoftAppRegistration, tokens?: string): ClientConfiguration {
-    const msalConfig = _.cloneDeep(msalConfigDefaults);
+async function getMsalConfig(app: MicrosoftAppRegistration, tokens?: string): Promise<ClientConfiguration> {
+    if (msalConfigDefaults === undefined) {
+        await init();
+    }
+    const msalConfig = _.cloneDeep(msalConfigDefaults!);
     msalConfig.auth.clientId = app.id;
     msalConfig.auth.clientSecret = app.secret;
     msalConfig.cache!.cachePlugin = memoryCachePlugin(tokens);
@@ -128,11 +136,7 @@ function getMsalConfig(app: MicrosoftAppRegistration, tokens?: string): ClientCo
 }
 
 async function createMsalClient(app: MicrosoftAppRegistration, tokens?: string) {
-    if (!msalConfigDefaults.auth.authorityMetadata) {
-        await init();
-    }
-
-    const msalConfig = getMsalConfig(app, tokens);
+    const msalConfig = await getMsalConfig(app, tokens);
     return {
         client: new ConfidentialClientApplication(msalConfig),
         cache: () => {
@@ -173,7 +177,7 @@ export async function getAuthorizationUrl(redirectUri: string,
     if (session.uid) {
         user ??= await getDbUser(session.uid);
     }
-    const app = getApp(user?.appId);
+    const app = await getApp(user?.appId);
 
     let loginHint;
     const prompt = next_prompt ?? (user?.username ? "none" : "select_account");
@@ -210,8 +214,10 @@ export async function exchangeForCredentials(
     response: AuthorizationCodePayload,
     session: WebSessionData,
 ) {
+    const config = await getConfig();
+
     const user = session.uid ? await getDbUser(session.uid) : undefined;
-    const app = getApp(user?.appId);
+    const app = await getApp(user?.appId);
     const { client: msalClient, cache: cacheGetter } = await createMsalClient(app);
     const authCodeRequestParameters: AuthorizationCodeRequest = {
         scopes: SCOPES,
@@ -256,7 +262,7 @@ export const getAccessToken: (user: User, retrying?: boolean) => Promise<UserTok
             if (_.isNil(credentials.expires)) {
                 throw new Error(`Expired credentials cleaned-up already`);
             }
-            const app = getApp(user.appId);
+            const app = await getApp(user.appId);
             const { client: msalClient, cache: cacheGetter } = await createMsalClient(app, credentials.cache);
             const accounts = await msalClient.getTokenCache().getAllAccounts();
             if (accounts.length === 0) {
