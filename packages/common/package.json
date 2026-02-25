@@ -23,7 +23,7 @@
     "yn": "^5.1.0"
   },
   "devDependencies": {
-    "@types/lodash": "^4.17.23",
+    "@types/lodash": "^4.17.24",
     "@types/node": "^24.10.13",
     "cross-env": "^10.1.0",
     "selfsigned": "^5.5.0",
