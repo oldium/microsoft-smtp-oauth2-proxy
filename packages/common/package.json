@@ -18,15 +18,15 @@
   },
   "dependencies": {
     "cookies-next": "^6.1.1",
-    "lodash": "^4.17.23",
+    "lodash": "^4.18.1",
     "proxy-addr": "^2.0.7",
     "yn": "^5.1.0"
   },
   "devDependencies": {
     "@types/lodash": "^4.17.24",
-    "@types/node": "^24.10.13",
+    "@types/node": "^24.12.4",
     "cross-env": "^10.1.0",
     "selfsigned": "^5.5.0",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   }
 }
