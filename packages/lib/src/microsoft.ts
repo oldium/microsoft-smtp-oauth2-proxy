@@ -26,7 +26,7 @@ import {
 import _ from "lodash";
 import { LogLevel } from "@azure/msal-common";
 import { WebSessionData } from "@ms-smtp/common/lib/state";
-import { cryptoRandomStringAsync } from "crypto-random-string";
+import cryptoRandomString from "crypto-random-string";
 import { ICachePlugin } from "@azure/msal-common/node";
 import { applyFilters } from "@ms-smtp/common/lib/filters";
 import assert from "node:assert";
@@ -161,7 +161,7 @@ export async function getAuthorizationUrl(redirectUri: string,
                                           next_prompt: string | undefined): Promise<string> {
 
     // noinspection SpellCheckingInspection
-    const codeVerifier = await cryptoRandomStringAsync({
+    const codeVerifier = cryptoRandomString({
         length: 44,
         characters: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~"
     });
@@ -225,13 +225,11 @@ export async function exchangeForCredentials(
         redirectUri,
         code: response.code,
         codeVerifier: session.codeVerifier!,
-        state: session.state!
+        state: session.state!,
+        nonce: session.nonce!,
     }
 
-    const authCodePayload = _.cloneDeep(response);
-    authCodePayload.nonce = session.nonce!;
-
-    const authResult = await msalClient.acquireTokenByCode(authCodeRequestParameters, authCodePayload);
+    const authResult = await msalClient.acquireTokenByCode(authCodeRequestParameters, response);
     const { cache } = cacheGetter();
     const credentials: MicrosoftOAuthCredentials = {
         cache: cache,

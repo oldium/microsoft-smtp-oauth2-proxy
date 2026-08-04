@@ -23,10 +23,74 @@ for (const file of nextFiles) {
         });
     }
 }
-await fs.cp("package-lock.json", "build/package-lock.json", {
-    preserveTimestamps: true,
-    force: true,
-});
+type LockEntry = {
+    link?: boolean;
+    resolved?: string;
+    dependencies?: Record<string, string>;
+    devDependencies?: Record<string, string>;
+    optionalDependencies?: Record<string, string>;
+    peerDependencies?: Record<string, string>;
+    peerDependenciesMeta?: Record<string, { optional?: boolean }>;
+};
+
+// TEMPORARY until typescript-eslint accepts TypeScript 7 and the root TypeScript 6 alias goes away.
+// Drops the root-only ESLint packages, whose TypeScript 6 peers npm would check against the UI's TypeScript 7.
+function pruneLock(packages: Record<string, LockEntry>, root: string) {
+    const reachable = new Set<string>();
+
+    const resolve = (from: string, name: string) => {
+        for (let dir = from; ; dir = dir.slice(0, Math.max(dir.lastIndexOf("/node_modules/"), 0))) {
+            const candidate = `${ dir ? `${ dir }/` : "" }node_modules/${ name }`;
+            if (candidate in packages) {
+                return candidate;
+            }
+            if (!dir) {
+                return undefined;
+            }
+        }
+    };
+
+    const visit = (path: string) => {
+        if (reachable.has(path)) {
+            return;
+        }
+        reachable.add(path);
+        const entry = packages[path];
+        if (entry.link) {
+            visit(entry.resolved!);
+            return;
+        }
+        const peers = Object.keys(entry.peerDependencies ?? {})
+            .filter((name) => !entry.peerDependenciesMeta?.[name]?.optional);
+        const names = [
+            ...Object.keys(entry.dependencies ?? {}),
+            ...Object.keys(entry.optionalDependencies ?? {}),
+            ...peers,
+            ...(path === root ? Object.keys(entry.devDependencies ?? {}) : []),
+        ];
+        for (const name of names) {
+            const found = resolve(path, name);
+            if (found) {
+                visit(found);
+            }
+        }
+    };
+    visit(root);
+
+    const relocated = (path: string) => path === root ? "" :
+        path.startsWith(`${ root }/`) ? path.slice(root.length + 1) : path;
+    const movedPaths = [...reachable].filter((path) => path.startsWith(`${ root }/`)).map(relocated);
+    const shadowed = (path: string) => !path.startsWith(`${ root }/`) &&
+        movedPaths.some((moved) => path === moved || path.startsWith(`${ moved }/`));
+
+    return Object.fromEntries([...reachable]
+        .filter((path) => !shadowed(path))
+        .map((path) => [relocated(path), packages[path]]));
+}
+
+const lock = JSON.parse(await fs.readFile("package-lock.json", "utf-8"));
+lock.packages = pruneLock(lock.packages, nextRoot);
+await fs.writeFile("build/package-lock.json", JSON.stringify(lock, null, 2) + "\n");
 
 // Update build/package.json to replace "@ms-smtp/*":"<version>" with "@ms-smtp/*":"file:../ms-smtp-*-<version>.tgz"
 const packageJsonPath = 'build/package.json';
@@ -37,11 +101,20 @@ const updatedPackageJsonText = packageJsonText.replace(
 );
 await fs.writeFile(packageJsonPath, updatedPackageJsonText);
 
+// npm >= 12 reads the install-script policy from the root manifest only.
+const rootPackageJson = JSON.parse(await fs.readFile('package.json', 'utf-8'));
+if (rootPackageJson.allowScripts) {
+    const buildPackageJson = JSON.parse(updatedPackageJsonText);
+    buildPackageJson.allowScripts = rootPackageJson.allowScripts;
+    await fs.writeFile(packageJsonPath, JSON.stringify(buildPackageJson, null, 2) + "\n");
+}
+
 // Do actual build
 const cwd = process.cwd();
 process.chdir('build');
 
-execSync(`npm install --package-lock-only`, { stdio: "inherit" });
+// --package-lock-only extracts bundleDependencies by tarball URL, which npm >= 12 blocks as "remote".
+execSync(`npm install --package-lock-only --allow-remote=all`, { stdio: "inherit" });
 execSync(`npm ci`, { stdio: "inherit" });
 execSync(`npm run build:next`, { stdio: "inherit" });
 
