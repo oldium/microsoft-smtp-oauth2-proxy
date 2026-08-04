@@ -7,7 +7,6 @@ import { endDb, getDb } from "@ms-smtp/common/lib/db";
 import { init as initMicrosoft, startMainRefreshJob } from "@ms-smtp/lib/microsoft";
 import express from "express";
 import routes from "@ms-smtp/server/routes/index";
-import { parse } from "node:url";
 import { createServer as createSmtpServer } from "@ms-smtp/server/smtp/smtp_server";
 import { AddressInfo } from "node:net";
 import { readFileSync } from "node:fs";
@@ -59,8 +58,7 @@ if (config.http.trustProxy) {
 expressApp.use(routes());
 
 expressApp.use(async (req, res) => {
-    const parsedUrl = parse(req.url!, true);
-    await nextAppHandler(req, res, parsedUrl);
+    await nextAppHandler(req, res);
 });
 
 // Start HTTP Servers
