@@ -4,9 +4,9 @@ import React, { memo } from "react";
 import {
     default as rhtToast,
     resolveValue,
-    Toast,
+    type Toast,
     Toaster as ReactHotToastToaster,
-    ToasterProps
+    type ToasterProps
 } from "react-hot-toast";
 import clsx from "clsx";
 import parse from "html-react-parser";

@@ -1,8 +1,8 @@
-import { getIronSession, IronSession } from "iron-session";
-import { WebSessionData } from "./state.ts";
+import { getIronSession, type IronSession } from "iron-session";
+import type { WebSessionData } from "./state.ts";
 import { getDbUser } from "./db.ts";
 import { getConfig } from "./config.ts";
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
 import type { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies.js";
 
 export class UnauthorizedError extends Error {

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server.js'
+import { type NextRequest, NextResponse } from 'next/server.js'
 import { getWebSessionUser, UnauthorizedError, webSessionFromCookieStore } from "@ms-smtp/common/lib/websession";
 import { showNotification } from "@ms-smtp/common/lib/cookies";
 import { cookies } from "next/headers.js";

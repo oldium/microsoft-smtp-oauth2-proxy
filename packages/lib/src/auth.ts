@@ -1,4 +1,4 @@
-import { getAccessToken, UserToken } from "./microsoft.ts";
+import { getAccessToken, type UserToken } from "./microsoft.ts";
 import { getDbUserByEmailPassword } from "@ms-smtp/common/lib/db";
 
 export async function userAuth(username: string, password: string): Promise<UserToken | null> {

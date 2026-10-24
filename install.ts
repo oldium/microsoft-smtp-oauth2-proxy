@@ -11,7 +11,7 @@ if (targetDir === undefined) {
 }
 
 if (!serverFile || !targetDir) {
-    console.error("Usage: node --import=@swc-node/register/esm-register install.ts <server-file> <target-directory>");
+    console.error("Usage: node install.ts <server-file> <target-directory>");
     process.exit(1);
 }
 

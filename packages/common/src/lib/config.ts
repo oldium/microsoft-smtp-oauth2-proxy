@@ -1,4 +1,4 @@
-import { createFilter, DEFAULT_RULES_ORDER, Filter, FilterType, RuleSet } from "./filters.ts";
+import { createFilter, DEFAULT_RULES_ORDER, type Filter, type FilterType, type RuleSet } from "./filters.ts";
 import { existsSync as fsExistsSync } from "node:fs";
 import fs from "node:fs/promises";
 import _ from "lodash";

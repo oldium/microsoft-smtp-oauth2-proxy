@@ -3,7 +3,7 @@ import nodemailer from "nodemailer";
 import { endDb, getDbUserByEmail } from "@ms-smtp/common/lib/db";
 import { getConfig } from "@ms-smtp/common/lib/config";
 import emailAddresses from "email-addresses";
-import SMTPConnection from "nodemailer/lib/smtp-connection/index.js";
+import type SMTPConnection from "nodemailer/lib/smtp-connection/index.js";
 import assert from "node:assert";
 
 dotenv.config({ path: ["../../.env"], quiet: true });

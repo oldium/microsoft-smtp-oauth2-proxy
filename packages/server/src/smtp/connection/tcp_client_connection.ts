@@ -1,5 +1,5 @@
-import { Socket } from 'net';
-import { TlsOptions, TLSSocket } from 'tls';
+import type { Socket } from 'net';
+import { type TlsOptions, TLSSocket } from 'tls';
 import { tryCloseSocket, waitSecured } from '../lib/socket.ts';
 import libRead from "../lib/read.ts";
 import { TypedEmitter } from "tiny-typed-emitter";

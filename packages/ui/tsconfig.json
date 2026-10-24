@@ -14,6 +14,8 @@
     "resolveJsonModule": true,
     "resolvePackageJsonExports": true,
     "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
     "allowImportingTsExtensions": true,
     "rewriteRelativeImportExtensions": true,
     "jsx": "react-jsx",

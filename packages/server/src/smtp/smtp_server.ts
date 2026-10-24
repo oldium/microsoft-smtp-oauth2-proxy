@@ -1,14 +1,14 @@
-import {
+import type {
     Addresses,
     Certificate,
     SmtpInterceptorOptions,
     TcpSecureServerOptions,
     TcpServerOptions
 } from "@ms-smtp/common/lib/config";
-import { Server as TLSServer, TLSSocket } from "tls";
-import { Server, Socket } from "net";
-import { SmtpClientSecureState, SmtpInterceptor, UserAuthorization } from "./protocol/smtp_interceptor.ts";
-import { AddressInfo } from "node:net";
+import { Server as TLSServer, type TLSSocket } from "tls";
+import { Server, type Socket } from "net";
+import { SmtpClientSecureState, SmtpInterceptor, type UserAuthorization } from "./protocol/smtp_interceptor.ts";
+import type { AddressInfo } from "node:net";
 import { Waitable } from "./lib/waitable.ts";
 import { tryCloseSocket } from "./lib/socket.ts";
 import { sleep } from "@ms-smtp/lib/sleep";
@@ -16,13 +16,14 @@ import { ConnectionClosedException } from "./lib/exceptions.ts";
 
 const FIRST_VISIBLE_ASCII = 0x20;
 
-export enum SmtpDetectedProtocol {
-    Secured,
-    Unsecure,
-    Tls,
-    AutoUnsecure,
-    AutoImplicitTls,
-}
+export const SmtpDetectedProtocol = {
+    Secured: 0,
+    Unsecure: 1,
+    Tls: 2,
+    AutoUnsecure: 3,
+    AutoImplicitTls: 4,
+} as const;
+export type SmtpDetectedProtocol = typeof SmtpDetectedProtocol[keyof typeof SmtpDetectedProtocol];
 
 export class SmtpServer {
     private readonly onUserAuth: UserAuthorization;

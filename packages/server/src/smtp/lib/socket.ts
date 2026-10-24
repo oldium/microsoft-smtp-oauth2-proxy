@@ -1,7 +1,7 @@
-import { Socket } from 'net';
-import { CancellablePromise, sleep } from "@ms-smtp/lib/sleep";
+import type { Socket } from 'net';
+import { type CancellablePromise, sleep } from "@ms-smtp/lib/sleep";
 import { ConnectionClosedException } from "./exceptions.ts";
-import { TLSSocket } from "tls";
+import type { TLSSocket } from "tls";
 
 const DESTROY_TIMEOUT_MS = 30000;
 

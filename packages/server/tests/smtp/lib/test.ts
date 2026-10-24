@@ -1,12 +1,12 @@
-import { connect, Server, Socket } from "net";
+import { connect, Server, type Socket } from "net";
 import { sleep as libSleep } from "@ms-smtp/lib/sleep";
 import { expect } from "@jest/globals";
 import { tryCloseSocket, waitSecured } from "../../../src/smtp/lib/socket.ts";
-import { AddressInfo } from "node:net";
-import { Certificate } from "@ms-smtp/common/lib/config";
+import type { AddressInfo } from "node:net";
+import type { Certificate } from "@ms-smtp/common/lib/config";
 import { connect as tlsConnect, TLSSocket } from "tls";
-import { ConnectionOptions } from "node:tls";
-import { SmtpDetectedProtocol, SmtpServer } from "../../../src/smtp/smtp_server.ts";
+import type { ConnectionOptions } from "node:tls";
+import { type SmtpDetectedProtocol, SmtpServer } from "../../../src/smtp/smtp_server.ts";
 import { Waitable } from "../../../src/smtp/lib/waitable.ts";
 
 /*
@@ -163,10 +163,14 @@ export class SpySmtpServer extends SmtpServer {
 }
 
 export class MockClient {
+    private readonly host: string;
+    private readonly port: number;
     private socket: Socket | TLSSocket | null = null;
     private error: Error | null = null;
 
-    constructor(private readonly host: string, private readonly port: number) {
+    constructor(host: string, port: number) {
+        this.host = host;
+        this.port = port;
     }
 
     public checkError() {

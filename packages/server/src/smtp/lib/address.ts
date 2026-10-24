@@ -1,4 +1,4 @@
-import { AddressInfo } from "node:net";
+import type { AddressInfo } from "node:net";
 
 export function formatAddress(address: AddressInfo): string {
     // Format IPv4 as-is, IPv6 in square brackets

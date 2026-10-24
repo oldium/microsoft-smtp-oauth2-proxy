@@ -213,7 +213,7 @@ await fs.mkdir('dist/data', { recursive: true });
 // Server and dependencies
 const binFiles = await fs.readdir('build/dist/bin');
 for (const file of binFiles) {
-    execSync(`node --import=@swc-node/register/esm-register ./install.ts ./build ./dist/bin/${ file } ./dist`, { stdio: 'inherit' });
+    execSync(`node ./install.ts ./build ./dist/bin/${ file } ./dist`, { stdio: 'inherit' });
 }
 
 // Create file env with production environment variables

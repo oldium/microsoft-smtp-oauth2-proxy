@@ -15,6 +15,7 @@ export interface Token {
 }
 
 export class GraphemeScanner {
+    private readonly str: string | undefined;
     private segments: Array<{ segment: string; index: number }> = [];
     private segPos = 0;
     private buffered: Token | null = null;
@@ -27,7 +28,8 @@ export class GraphemeScanner {
     // Grapheme segmenter (locale-neutral)
     private readonly segmenter = new Intl.Segmenter("und", { granularity: "grapheme" });
 
-    constructor(private readonly str: string | undefined) {
+    constructor(str: string | undefined) {
+        this.str = str;
         // Materialize segments so we have a stable index for CU boundaries.
         // Performance is fine per your constraints.
         if (str) {
@@ -172,11 +174,11 @@ export class JsonRepairError extends Error {
  * Error positions are reported in grapheme clusters (Intl.Segmenter).
  */
 class HumanJsonParser {
+    private readonly input: string | undefined;
     private readonly cur: GraphemeScanner;
 
-    constructor(
-        private readonly input: string | undefined
-    ) {
+    constructor(input: string | undefined) {
+        this.input = input;
         this.cur = new GraphemeScanner(this.input);
     }
 

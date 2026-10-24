@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback } from "react";
-import UrlActionDto from "@ms-smtp/common/dto/url_action_dto";
+import type UrlActionDto from "@ms-smtp/common/dto/url_action_dto";
 import { toast } from "./toaster.tsx";
 import { LogOut, MailX } from "lucide-react";
 import { useRouter } from "next/navigation";

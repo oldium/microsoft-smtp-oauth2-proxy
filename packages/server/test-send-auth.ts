@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 import emailAddresses from "email-addresses";
-import SMTPConnection from "nodemailer/lib/smtp-connection/index.js";
+import type SMTPConnection from "nodemailer/lib/smtp-connection/index.js";
 
 const [hostPort, from, password, to, subject, message] = process.argv.slice(2);
 

@@ -1,9 +1,9 @@
 import { SmtpParser } from "../protocol/smtp_parser.ts";
 import { TypedEmitter } from "tiny-typed-emitter";
-import { Socket } from "node:net";
+import type { Socket } from "node:net";
 import { TcpClientConnection } from "../connection/tcp_client_connection.ts";
-import { SmtpError } from "../lib/errors.ts";
-import { TlsOptions } from "tls";
+import type { SmtpError } from "../lib/errors.ts";
+import type { TlsOptions } from "tls";
 
 interface SmtpClientApiEvents {
     "close": () => void;

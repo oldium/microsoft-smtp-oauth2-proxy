@@ -17,9 +17,9 @@
     "test": "node --conditions=development --experimental-vm-modules --disable-warning=ExperimentalWarning node_modules/jest/bin/jest.js --colors --verbose --detectOpenHandles --workerThreads",
     "build": "cross-env NODE_ENV=production npm run build --workspaces --if-present",
     "pack": "npm pack --workspace packages/common && npm pack --workspace packages/lib && npm pack --workspace packages/server",
-    "build:release": "node --import=@swc-node/register/esm-register --enable-source-maps ./build.ts",
+    "build:release": "node --enable-source-maps ./build.ts",
     "clean": "npm run clean --workspaces --if-present && rimraf ./dist",
-    "analyze": "cross-env ANALYZE=true node --import=@swc-node/register/esm-register --enable-source-maps ./build.ts",
+    "analyze": "cross-env ANALYZE=true node --enable-source-maps ./build.ts",
     "lint": "eslint",
     "test-send-auth": "npm run --workspace packages/server test-send-auth",
     "test-send-db": "npm run --workspace packages/server test-send-db"
@@ -28,11 +28,6 @@
     "@eslint-react/eslint-plugin": "^5.28.8",
     "@eslint/js": "^10.0.1",
     "@next/eslint-plugin-next": "^16.4.3",
-    "@swc-node/jest": "^1.10.1",
-    "@swc-node/register": "^1.12.1",
-    "@swc/core": "1.16.20",
-    "@swc/helpers": "^0.5.23",
-    "@swc/types": "^0.1.28",
     "@types/fs-extra": "^11.0.4",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.19.2",
@@ -49,7 +44,6 @@
   },
   "allowScripts": {
     "@parcel/watcher": false,
-    "@swc/core": false,
     "sharp": false,
     "unrs-resolver": false
   }

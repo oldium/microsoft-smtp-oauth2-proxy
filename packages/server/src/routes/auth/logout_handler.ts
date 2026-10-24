@@ -1,6 +1,6 @@
-import express from "express";
+import type express from "express";
 import { UnauthorizedError, webSessionFromRequest } from "@ms-smtp/common/lib/websession";
-import UrlActionDto from "@ms-smtp/common/dto/url_action_dto";
+import type UrlActionDto from "@ms-smtp/common/dto/url_action_dto";
 
 export default async function logoutHandler(req: express.Request, res: express.Response) {
     try {

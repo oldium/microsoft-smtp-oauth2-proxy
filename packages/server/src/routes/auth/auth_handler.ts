@@ -1,12 +1,12 @@
 import { clearAuthorizationSession, exchangeForCredentials, getAuthorizationUrl, } from "@ms-smtp/lib/microsoft";
-import { AuthorizationCodePayload } from "@azure/msal-node";
+import type { AuthorizationCodePayload } from "@azure/msal-node";
 import _ from "lodash";
-import express from "express";
+import type express from "express";
 import { getUriNoQuery } from "@ms-smtp/lib/request";
 import { webSessionFromRequest } from "@ms-smtp/common/lib/websession";
-import { getDbUser, updateDbUserCredentials, User } from "@ms-smtp/common/lib/db";
-import { WebSessionData } from "@ms-smtp/common/lib/state";
-import { IronSession } from "iron-session";
+import { getDbUser, updateDbUserCredentials, type User } from "@ms-smtp/common/lib/db";
+import type { WebSessionData } from "@ms-smtp/common/lib/state";
+import type { IronSession } from "iron-session";
 import { EmailNotAllowed } from "@ms-smtp/common/lib/filters";
 import { showNotification } from "@ms-smtp/common/lib/cookies";
 

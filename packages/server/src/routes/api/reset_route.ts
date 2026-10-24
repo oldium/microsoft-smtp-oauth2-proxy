@@ -1,8 +1,8 @@
 import { updateDbUserSmtpPassword } from "@ms-smtp/common/lib/db";
 import crypto from "node:crypto";
 import { getWebSessionUser, UnauthorizedError, webSessionFromRequest } from "@ms-smtp/common/lib/websession";
-import express from "express";
-import UserDto from "@ms-smtp/common/dto/user_dto";
+import type express from "express";
+import type UserDto from "@ms-smtp/common/dto/user_dto";
 
 export default async function resetHandler(req: express.Request, res: express.Response) {
     try {

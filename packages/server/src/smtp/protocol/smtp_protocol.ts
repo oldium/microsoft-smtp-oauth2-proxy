@@ -1,11 +1,11 @@
-import { UserToken } from "@ms-smtp/lib/microsoft";
-import { Command, Response, SmtpInterceptorApi } from "../api/smtp_interceptor_api.ts";
+import type { UserToken } from "@ms-smtp/lib/microsoft";
+import type { Command, Response, SmtpInterceptorApi } from "../api/smtp_interceptor_api.ts";
 import { base64Decode, base64Encode } from "../lib/base64.ts";
 import { CRLF } from "./smtp_parser.ts";
 import { SmtpTimer } from "./smtp_timer.ts";
 import { EhloUnsuccessfulException, StartTlsUnsuccessfulException } from "../lib/exceptions.ts";
 import { TypedEmitter } from "tiny-typed-emitter";
-import { SmtpTimeouts } from "@ms-smtp/common/lib/config";
+import type { SmtpTimeouts } from "@ms-smtp/common/lib/config";
 import { Waitable } from "../lib/waitable.ts";
 
 type SmtpCommandInterceptor = (command: Command) => Promise<void>;

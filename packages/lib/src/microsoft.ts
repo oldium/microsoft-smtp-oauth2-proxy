@@ -9,25 +9,25 @@ import {
     type MicrosoftOAuthCredentials,
     updateDbUserCredentials,
     upsertDbUser,
-    User
+    type User
 } from "@ms-smtp/common/lib/db";
 import crypto, { createHash } from "node:crypto";
 import { limitNamespace } from "./limit.ts";
 import {
     AuthError,
-    AuthorizationCodePayload,
-    AuthorizationCodeRequest,
-    AuthorizationUrlRequest,
+    type AuthorizationCodePayload,
+    type AuthorizationCodeRequest,
+    type AuthorizationUrlRequest,
     ClientAuthErrorCodes,
     ConfidentialClientApplication,
-    Configuration as MSALConfiguration,
+    type Configuration as MSALConfiguration,
     InteractionRequiredAuthError
 } from "@azure/msal-node";
 import _ from "lodash";
 import { LogLevel } from "@azure/msal-common";
-import { WebSessionData } from "@ms-smtp/common/lib/state";
+import type { WebSessionData } from "@ms-smtp/common/lib/state";
 import cryptoRandomString from "crypto-random-string";
-import { ICachePlugin } from "@azure/msal-common/node";
+import type { ICachePlugin } from "@azure/msal-common/node";
 import { applyFilters } from "@ms-smtp/common/lib/filters";
 import assert from "node:assert";
 import { getConfig } from "@ms-smtp/common/lib/config";

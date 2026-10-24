@@ -1,6 +1,6 @@
 import { getWebSessionUser, UnauthorizedError, webSessionFromRequest } from "@ms-smtp/common/lib/websession";
-import express from "express";
-import UserDto from "@ms-smtp/common/dto/user_dto";
+import type express from "express";
+import type UserDto from "@ms-smtp/common/dto/user_dto";
 
 export default async function userHandler(req: express.Request, res: express.Response) {
     try {

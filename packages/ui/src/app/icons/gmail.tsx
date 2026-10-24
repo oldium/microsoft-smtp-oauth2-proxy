@@ -2,7 +2,7 @@
 // Public domain, via Wikimedia Commons
 // Converted with https://react-svgr.com/playground/?icon=true&typescript=true
 import * as React from "react"
-import { SVGProps } from "react"
+import type { SVGProps } from "react"
 
 const SvgComponent = (props: SVGProps<SVGSVGElement>) => (
     <svg

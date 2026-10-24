@@ -2,9 +2,14 @@ import fs from "node:fs/promises";
 import _ from "lodash";
 
 export class EmailNotAllowed extends Error {
-    constructor(public readonly email: string, public readonly domain: string) {
+    public readonly email: string;
+    public readonly domain: string;
+
+    constructor(email: string, domain: string) {
         super(`Email ${ email } is not allowed`);
         this.name = "EmailNotAllowed";
+        this.email = email;
+        this.domain = domain;
     }
 }
 

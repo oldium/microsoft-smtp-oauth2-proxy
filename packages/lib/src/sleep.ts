@@ -14,12 +14,12 @@ export function sleep(ms: number, onTimeout?: () => void, timeoutSet?: typeof se
             sleepPromiseReject(err);
         }
     }, ms);
-    (<CancellablePromise<void>>sleepPromise).cancel = () => {
+    (sleepPromise as CancellablePromise<void>).cancel = () => {
         if (timeoutId !== undefined) {
             (timeoutClear ?? clearTimeout).call(null, timeoutId);
             timeoutId = undefined;
         }
     };
 
-    return <CancellablePromise<void>>sleepPromise;
+    return sleepPromise as CancellablePromise<void>;
 }

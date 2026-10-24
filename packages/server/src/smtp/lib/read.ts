@@ -1,4 +1,4 @@
-import { Socket } from "net";
+import type { Socket } from "net";
 
 export default async function read(socket: Socket | null, closedPromise: Promise<null>): Promise<Buffer | null> {
     if (socket) {

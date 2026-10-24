@@ -1,6 +1,6 @@
 import { ConnectionClosedException, InvalidResponseException } from "../lib/exceptions.ts";
 import assert from "node:assert";
-import { SmtpError } from "../lib/errors.ts";
+import type { SmtpError } from "../lib/errors.ts";
 
 export interface Response {
     code: string;

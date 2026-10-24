@@ -1,4 +1,4 @@
-import { SmtpError } from "../lib/errors.ts";
+import type { SmtpError } from "../lib/errors.ts";
 
 export interface Command {
     name: string;

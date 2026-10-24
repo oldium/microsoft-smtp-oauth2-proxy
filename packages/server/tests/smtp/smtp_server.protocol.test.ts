@@ -5,7 +5,7 @@ import console from "console";
 import { base64Encode } from "../../src/smtp/lib/base64.ts";
 import { MockClient, MockServer, SpySmtpServer } from "./lib/test.ts";
 import { default as _ } from "lodash";
-import { Certificate } from "@ms-smtp/common/lib/config";
+import type { Certificate } from "@ms-smtp/common/lib/config";
 import selfsigned from "selfsigned";
 import assert from "node:assert";
 
@@ -30,18 +30,20 @@ async function createSelfSignedCertificate(): Promise<Certificate> {
     return selfSignedCertificate;
 }
 
-enum ServerTlsType {
-    Secured,
-    Tls,
-    StartTls,
-    AutoTls
-}
+const ServerTlsType = {
+    Secured: 0,
+    Tls: 1,
+    StartTls: 2,
+    AutoTls: 3,
+} as const;
+type ServerTlsType = typeof ServerTlsType[keyof typeof ServerTlsType];
 
-enum MockServerTlsType {
-    Secured,
-    Tls,
-    StartTls,
-}
+const MockServerTlsType = {
+    Secured: 0,
+    Tls: 1,
+    StartTls: 2,
+} as const;
+type MockServerTlsType = typeof MockServerTlsType[keyof typeof MockServerTlsType];
 
 async function constructSmtpServer(host: string, serverType: ServerTlsType, targetHost: string, targetPort: number, targetTlsType: MockServerTlsType, greetingName: string, clientTimeoutMs?: number) {
     return new SpySmtpServer(

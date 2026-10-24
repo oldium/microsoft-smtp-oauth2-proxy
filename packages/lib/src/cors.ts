@@ -1,6 +1,6 @@
 import { getUriNoQuery } from "./request.ts";
-import cors from "cors";
-import express from "express";
+import type cors from "cors";
+import type express from "express";
 
 export function corsOptions(methods: string[], credentials: boolean): cors.CorsOptionsDelegate<express.Request> {
     return (req: express.Request, callback: (err: Error | null, options?: cors.CorsOptions) => void) => {

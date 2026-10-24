@@ -1,10 +1,10 @@
-import { connect, Socket } from 'net';
-import { connect as tlsConnect, TLSSocket } from 'tls';
+import { connect, type Socket } from 'net';
+import { connect as tlsConnect, type TLSSocket } from 'tls';
 import { tryCloseSocket, waitSecured } from '../lib/socket.ts';
 import libRead from "../lib/read.ts";
 import { TypedEmitter } from "tiny-typed-emitter";
 import assert from "node:assert";
-import { ConnectionOptions } from "node:tls";
+import type { ConnectionOptions } from "node:tls";
 import { isIP } from "node:net";
 import Address from "ipaddr.js";
 import { Waitable } from "../lib/waitable.ts";

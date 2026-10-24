@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import { createServer as createHttpServer, Server } from "http";
+import { createServer as createHttpServer, type Server } from "http";
 import { createServer as createHttpsServer } from "https";
 import next from "next";
 import { getConfig, type TcpServerOptions } from "@ms-smtp/common/lib/config";
@@ -8,7 +8,7 @@ import { init as initMicrosoft, startMainRefreshJob } from "@ms-smtp/lib/microso
 import express from "express";
 import routes from "@ms-smtp/server/routes/index";
 import { createServer as createSmtpServer } from "@ms-smtp/server/smtp/smtp_server";
-import { AddressInfo } from "node:net";
+import type { AddressInfo } from "node:net";
 import { readFileSync } from "node:fs";
 import { userAuth } from "@ms-smtp/lib/auth";
 import { formatAddressPort } from "@ms-smtp/server/smtp/lib/address";

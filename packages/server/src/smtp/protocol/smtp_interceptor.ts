@@ -1,16 +1,16 @@
-import { type Response } from './smtp_parser.ts';
-import { Socket } from 'node:net';
+import type { Response } from './smtp_parser.ts';
+import type { Socket } from 'node:net';
 import assert from "node:assert";
 import { ConnectionClosedException, TimeoutException } from "../lib/exceptions.ts";
-import { Certificate, SmtpInterceptorOptions } from "@ms-smtp/common/lib/config";
+import type { Certificate, SmtpInterceptorOptions } from "@ms-smtp/common/lib/config";
 import { TypedEmitter } from "tiny-typed-emitter";
 import { SmtpServerApi } from "../api/smtp_server_api.ts";
 import { Pipeline } from "../lib/pipeline.ts";
 import { Waitable } from "../lib/waitable.ts";
-import { UserToken } from "@ms-smtp/lib/microsoft";
+import type { UserToken } from "@ms-smtp/lib/microsoft";
 import { SmtpClientApi } from "../api/smtp_client_api.ts";
-import { SmtpInterceptorApi } from "../api/smtp_interceptor_api.ts";
-import { SmtpError } from "../lib/errors.ts";
+import type { SmtpInterceptorApi } from "../api/smtp_interceptor_api.ts";
+import type { SmtpError } from "../lib/errors.ts";
 import { SmtpProtocol } from "./smtp_protocol.ts";
 
 export type UserAuthorization = (username: string, password: string) => Promise<UserToken | null> | UserToken | null;
@@ -19,11 +19,12 @@ interface SmtpInterceptorEvents {
     "idle": () => void;
 }
 
-export enum SmtpClientSecureState {
-    Secured,
-    Unsecure,
-    ImplicitTls,
-}
+export const SmtpClientSecureState = {
+    Secured: 0,
+    Unsecure: 1,
+    ImplicitTls: 2,
+} as const;
+export type SmtpClientSecureState = typeof SmtpClientSecureState[keyof typeof SmtpClientSecureState];
 
 export class SmtpInterceptor extends TypedEmitter<SmtpInterceptorEvents> implements SmtpInterceptorApi {
     private readonly clientApi: SmtpClientApi;

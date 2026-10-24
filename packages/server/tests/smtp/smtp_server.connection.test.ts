@@ -2,20 +2,21 @@
 
 import { describe, expect, test } from "@jest/globals";
 import console from "console";
-import { SMTPServer, SMTPServerSession } from "smtp-server";
+import { SMTPServer, type SMTPServerSession } from "smtp-server";
 import SMTPConnection from "nodemailer/lib/smtp-connection/index.js";
 // noinspection SpellCheckingInspection
 import selfsigned from "selfsigned";
-import { Certificate } from "@ms-smtp/common/lib/config";
+import type { Certificate } from "@ms-smtp/common/lib/config";
 import { createServer as createSmtpServer } from "../../src/smtp/smtp_server.ts";
 import "./lib/test.ts";
-import { AddressInfo } from "node:net";
+import type { AddressInfo } from "node:net";
 
-enum TlsState {
-    FakeSecure,
-    Secure,
-    StartTls,
-}
+const TlsState = {
+    FakeSecure: 0,
+    Secure: 1,
+    StartTls: 2,
+} as const;
+type TlsState = typeof TlsState[keyof typeof TlsState];
 
 let selfSignedCertificate: Certificate | undefined;
 

@@ -4,7 +4,7 @@ import ConfigItem from "./config_item.tsx";
 import React, { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import ReloadButton from "./reload_button.tsx";
-import UserDto from "@ms-smtp/common/dto/user_dto";
+import type UserDto from "@ms-smtp/common/dto/user_dto";
 import { toast } from "./toaster.tsx";
 
 export default function AuthPassword( params: { password: string } ) {

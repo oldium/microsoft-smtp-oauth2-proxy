@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { deleteCookie, getCookie } from "cookies-next/client";
-import { toast, ToastType } from "./toaster.tsx";
+import { toast, type ToastType } from "./toaster.tsx";
 import { useRouter } from "next/navigation";
 // noinspection SpellCheckingInspection
 import striptags from "striptags";

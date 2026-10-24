@@ -40,18 +40,8 @@ const config = {
   ],
 
   // A map from regular expressions to paths to transformers
-  transform: {
-    '^.+\\.(t|j)sx?$': [
-        '@swc-node/jest',
-      {
-        target: 'esnext',
-        module: 'es6',
-        dynamicImport: true,
-        esModuleInterop: true,
-        strict: true,
-      }
-    ],
-  },
+  // Empty, so that Jest strips TypeScript types with Node instead of using babel-jest
+  transform: {},
 
   // Whether to use watchman for file crawling
   // watchman: true,
