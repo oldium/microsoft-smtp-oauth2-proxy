@@ -35,7 +35,8 @@ RUN apt update \
 
 WORKDIR /app
 
-RUN NPM_CONFIG_UPDATE_NOTIFIER=false npm install -g npm@latest
+RUN --mount=type=cache,target=/root/.npm \
+    NPM_CONFIG_UPDATE_NOTIFIER=false npm install -g npm@latest
 
 COPY --from=builder --chown=node:node /build/dist/ /app
 COPY --chmod=u=rwx,go=rx ./entrypoint.sh /entrypoint.sh
