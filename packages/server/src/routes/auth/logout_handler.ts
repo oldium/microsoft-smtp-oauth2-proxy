@@ -1,6 +1,7 @@
 import type express from "express";
 import { UnauthorizedError, webSessionFromRequest } from "@ms-smtp/common/lib/websession";
 import type UrlActionDto from "@ms-smtp/common/dto/url_action_dto";
+import { showNotification } from "@ms-smtp/common/lib/cookies";
 
 export default async function logoutHandler(req: express.Request, res: express.Response) {
     try {
@@ -9,6 +10,7 @@ export default async function logoutHandler(req: express.Request, res: express.R
         session.destroy();
 
         if (uid) {
+            await showNotification("info", "You have been signed out", { req, res });
             res.json({ message: "Logged-out", url: "/" } satisfies UrlActionDto);
         } else {
             res.status(401).json({ message: "Unauthorized" });

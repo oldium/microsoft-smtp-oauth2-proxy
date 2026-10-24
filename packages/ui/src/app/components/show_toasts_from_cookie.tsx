@@ -3,12 +3,13 @@
 import { useEffect } from "react";
 import { deleteCookie, getCookie } from "cookies-next/client";
 import { toast, type ToastType } from "./toaster.tsx";
-import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 // noinspection SpellCheckingInspection
 import striptags from "striptags";
 
 export default function ShowToastsFromCookie() {
-    const router = useRouter();
+    // Root layout survives client navigation, so re-check the cookie on each one
+    const pathname = usePathname();
 
     useEffect(() => {
         const COOKIE_NAME = "show_notifications";
@@ -34,7 +35,7 @@ export default function ShowToastsFromCookie() {
             }
             deleteCookie(COOKIE_NAME);
         }
-    }, [router]);
+    }, [pathname]);
 
     return null;
 }
