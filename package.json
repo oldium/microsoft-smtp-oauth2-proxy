@@ -25,7 +25,8 @@
     "test-send-db": "npm run --workspace packages/server test-send-db"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.5",
+    "@eslint-react/eslint-plugin": "^5.28.8",
+    "@eslint/js": "^10.0.1",
     "@next/eslint-plugin-next": "^16.4.3",
     "@swc-node/jest": "^1.10.1",
     "@swc-node/register": "^1.12.1",
@@ -37,8 +38,9 @@
     "@types/node": "^24.19.2",
     "@vercel/nft": "^1.11.0",
     "cross-env": "^10.1.0",
-    "eslint": "^9.39.5",
-    "eslint-config-next": "^16.4.3",
+    "eslint": "^10.13.0",
+    "eslint-plugin-jsx-a11y-x": "^0.2.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "fs-extra": "^11.4.1",
     "jest": "^30.5.2",
     "rimraf": "^6.1.3",

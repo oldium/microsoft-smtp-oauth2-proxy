@@ -28,7 +28,7 @@ export default function AuthActions() {
         } catch {
             toast("error", "An error occurred. Please try again later.");
         }
-    }, []);
+    }, [router]);
 
     const doLogout = useCallback(async () => {
         try {
@@ -49,7 +49,7 @@ export default function AuthActions() {
         } catch {
             toast("error", "An error occurred. Please try again later.");
         }
-    }, []);
+    }, [router]);
 
     return (<>
             <button

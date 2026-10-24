@@ -6,21 +6,22 @@ import { getWebSessionUser, webSessionFromCookieStore } from "@ms-smtp/common/li
 import { redirect } from "next/navigation";
 
 export default async function AuthConfig() {
+    let username: string;
+    let password: string;
     try {
         const cookieStore = await cookies();
         const session = await webSessionFromCookieStore(cookieStore);
         const user = await getWebSessionUser(session);
 
-        const username = user!.email;
-        const password = user!.smtpPassword;
-
-        return (<>
-                <AuthUsername username={ username }/>
-                <AuthPassword password={ password }/>
-            </>
-        );
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (err) {
+        username = user!.email;
+        password = user!.smtpPassword;
+    } catch {
         redirect("/");
     }
+
+    return (<>
+            <AuthUsername username={ username }/>
+            <AuthPassword password={ password }/>
+        </>
+    );
 }

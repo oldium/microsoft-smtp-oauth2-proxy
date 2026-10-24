@@ -7,7 +7,6 @@ import { toast } from "./toaster.tsx";
 
 export default function CopyButton(props: { value: string | number, disabled: boolean }) {
     const doCopy = async (value: string | number) => {
-        "use client";
         try {
             await navigator.clipboard.writeText(String(value));
             toast("success", "Value copied to clipboard");

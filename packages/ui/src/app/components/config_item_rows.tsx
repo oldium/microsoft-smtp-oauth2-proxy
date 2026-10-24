@@ -10,8 +10,8 @@ function ConfigItemRows<T>(props: {
     loading?: boolean,
 }) {
     return (<> {
-        props.rows.map(props.valuesMapper).map((values, index) =>
-            <ConfigItemsLine key={ index } loading={ props.loading } disabled={ props.disabled }
+        props.rows.map(props.valuesMapper).map((values) =>
+            <ConfigItemsLine key={ values.join(":") } loading={ props.loading } disabled={ props.disabled }
                              labels={ props.labels }
                              values={ values }
                              gridClassName={ props.gridClassName }

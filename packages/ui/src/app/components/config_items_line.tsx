@@ -10,7 +10,7 @@ export default memo(function ConfigItemsLine(props: {
 }) {
     return <div className={ `grid ${ props.gridClassName } gap-4 py-2` }>
         { props.labels.map((label, index) => (
-            <ConfigItem key={ index } label={ label } loading={ props.loading }
+            <ConfigItem key={ label } label={ label } loading={ props.loading }
                         disabled={ props.disabled }
                         value={ props.values[index] }/>
         )) }

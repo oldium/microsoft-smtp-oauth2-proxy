@@ -39,7 +39,7 @@ export default function AuthPassword( params: { password: string } ) {
         } finally {
             setLoading(false);
         }
-    }, [password]);
+    }, [router]);
 
     return (<>
         <ConfigItem label="Password" loading={ loading } disabled={ loading }
