@@ -1,5 +1,6 @@
 // noinspection DuplicatedCode
 
+import { describe, expect, test } from "@jest/globals";
 import { GraphemeScanner, JsonRepairError, parseHumanJsonArray, parseHumanJsonObject } from "../../src/lib/json.ts";
 
 describe("Tests for GraphemeScanner", () => {
