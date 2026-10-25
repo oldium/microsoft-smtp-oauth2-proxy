@@ -317,6 +317,14 @@ command is executed. This is suitable especially for the Docker environment.
 
 ### Docker Build
 
+The image is based on [Docker Hardened Images][dhi] for Node.js, which are
+pulled from the `dhi.io` registry. The registry requires signing in with a
+Docker account, a free one is sufficient:
+
+```bash
+docker login dhi.io
+```
+
 To build the Docker image, run:
 
 ```bash
@@ -336,17 +344,22 @@ This will create a Docker image with the name `microsoft-smtp-oauth2-proxy`.
 >   --no-cache -f .\Dockerfile . -t microsoft-smtp-oauth2-proxy
 > ```
 
+[dhi]: https://docs.docker.com/dhi/
+
 #### Run the Image
 
 The image is started with `/app` as the working directory, so all relative paths
-are resolved relative to `/app`. The image can be run with the following
-command:
+are resolved relative to `/app`. The application writes only to `/app/data`, the
+rest of the image is owned by root. The container is therefore run with a
+read-only root filesystem and `/tmp` as tmpfs. The image already contains
+[tini][tini] as the init process, so the `--init` option is not needed. The
+image can be run with the following command:
 
 ```bash
-docker run -p 80:3000 -p <host port>:<app port> ... \
-  -v <volume name>:/app/data -v <certs directory>:/app/certs ... \
+docker run --read-only --tmpfs /tmp -p 80:3000 -p <host port>:<app port> ... \
+  -v <volume name>:/app/data -v <certs directory>:/app/certs:ro ... \
   -e SMTP_KEY_FILE=certs/smtp_key.pem -e SMTP_CERT_FILE=certs/smtp_cert.pem \
-  -e APP_SECRETS=my-app-id:my-secret
+  -e APP_SECRETS=my-app-id:my-secret \
   -e <variable>=<value> ... \
   microsoft-smtp-oauth2-proxy
 ```
@@ -354,13 +367,28 @@ docker run -p 80:3000 -p <host port>:<app port> ... \
 For possible environmental variables and their values `-e <variable>=<value>`
 see [`.env.example`][env-example] file in the project root.
 
+By default, the application runs as user `node` with UID/GID `1000:1000`. Use
+the `--user` option to run it as a different user, for example as your own user:
+
+```bash
+docker run --user "$(id -u):$(id -g)" ...
+```
+
+The data volume must be writable and the certificate files must be readable by
+the user the container runs as. The `/app/data` directory in the image is owned
+by the default user `1000:1000`, and a new named volume, like `proxy-config` in
+the examples below, takes over its owner and permissions. For a bind-mounted
+directory see [Docker Compose](#docker-compose).
+
+[tini]: https://github.com/krallin/tini
+
 #### SSL/TLS and STARTTLS Ports Exposed
 
 The image can be started with:
 
 ```bash
-docker run -p 80:3000 -p 465:465 -p 587:587 \
-  -v proxy-config:/app/data -v ./certs:/app/certs \
+docker run --read-only --tmpfs /tmp -p 80:3000 -p 465:465 -p 587:587 \
+  -v proxy-config:/app/data -v ./certs:/app/certs:ro \
   -e APP_SECRETS=my-app-id:my-secret -e SESSION_SECRET=my-session-secret \
   -e SMTP_KEY_FILE=certs/smtp_key.pem -e SMTP_CERT_FILE=certs/smtp_cert.pem \
   -e SMTP_PUBLIC_HOST=smtp.example.com \
@@ -382,8 +410,8 @@ The auto-TLS ports can listen on the same ports as standard SSL/TLS and STARTTLS
 traffic:
 
 ```bash
-docker run -p 80:3000 -p 465:465 -p 587:587 \
-  -v proxy-config:/app/data -v ./certs:/app/certs \
+docker run --read-only --tmpfs /tmp -p 80:3000 -p 465:465 -p 587:587 \
+  -v proxy-config:/app/data -v ./certs:/app/certs:ro \
   -e APP_SECRETS=my-app-id:my-secret -e SESSION_SECRET=my-session-secret \
   -e SMTP_KEY_FILE=certs/smtp_key.pem -e SMTP_CERT_FILE=certs/smtp_cert.pem \
   -e SMTP_PUBLIC_HOST=smtp.example.com \
@@ -406,7 +434,7 @@ If you have reverse proxy with SSL/TLS termination, like [HAProxy][haproxy], you
 can omit the certificates and forward the traffic to the `SMTP_PORT`:
 
 ```bash
-docker run -p 80:3000 -p 25:25 \
+docker run --read-only --tmpfs /tmp -p 80:3000 -p 25:25 \
   -v proxy-config:/app/data \
   -e APP_SECRETS=my-app-id:my-secret -e SESSION_SECRET=my-session-secret \
   -e SMTP_PUBLIC_HOST=smtp.example.com \
@@ -440,9 +468,21 @@ services:
   smtp-proxy:
     restart: always
     image: microsoft-smtp-oauth2-proxy
+    read_only: true
+    tmpfs:
+      - /tmp
     volumes:
-      - ./data:/app/data
-      - ./certs:/app/certs
+      - type: bind
+        source: ./data
+        target: /app/data
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./certs
+        target: /app/certs
+        read_only: true
+        bind:
+          create_host_path: false
     environment:
       APP_SECRETS: "my-app-id:my-secret"
       SESSION_SECRET: "my-session-secret"
@@ -458,10 +498,34 @@ services:
 ```
 
 This is the same as the manual Docker run command shown above, but in the Docker
-Compose. See section above for the examples. To start the application, run:
+Compose. See section above for the examples.
+
+The bind-mounted directories must exist before the start. The `./data`
+directory must be writable and the files in `./certs` must be readable by the
+user the container runs as, `1000:1000` by default:
 
 ```bash
-docker-compose up --detach
+mkdir -p data certs
+sudo chown 1000:1000 data
+```
+
+With `create_host_path: false`, Docker Compose does not create a missing
+directory owned by root, which the application could not write to. The start
+fails with `bind source path does not exist` instead.
+
+To run the application as a different user, add the `user` attribute to the
+service and make `./data` owned by that user instead:
+
+```yaml
+services:
+  smtp-proxy:
+    user: "1001:1001"
+```
+
+To start the application, run:
+
+```bash
+docker compose up --detach
 ```
 
 ### Auto-TLS Protocol Detection Directly on HAProxy
@@ -607,8 +671,15 @@ services:
   smtp-proxy:
     restart: always
     image: microsoft-smtp-oauth2-proxy
+    read_only: true
+    tmpfs:
+      - /tmp
     volumes:
-      - ./data:/app/data
+      - type: bind
+        source: ./data
+        target: /app/data
+        bind:
+          create_host_path: false
     environment:
       APP_SECRETS: "my-app-id:my-secret"
       SESSION_SECRET: "my-session-secret"

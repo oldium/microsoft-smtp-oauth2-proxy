@@ -1,10 +1,11 @@
-FROM node:26-trixie-slim AS builder
+# syntax=docker/dockerfile:1
+
+FROM dhi.io/node:26-debian-dev AS builder
 
 WORKDIR /build
 
-ENV NPM_CONFIG_UPDATE_NOTIFIER=false
-
-RUN npm install -g npm@latest
+# The bundled npm is a distro package, /usr/local/bin takes precedence in PATH
+RUN npm install -g --prefix /usr/local npm@latest
 
 # Copy package files and install dependencies
 COPY --chmod=u=rw,go=r package*.json ./
@@ -27,23 +28,28 @@ RUN npm run test
 RUN --mount=type=cache,target=/root/.npm \
     npm run build:release
 
-FROM node:26-trixie-slim AS app
+FROM dhi.io/node:26-debian-dev AS tini
 
-RUN apt update \
- && DEBIAN_FRONTEND=noninteractive apt upgrade -y \
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends tini \
  && rm -rf /var/lib/apt/lists/*
+
+FROM dhi.io/node:26-debian AS app
+
+COPY --from=tini /usr/bin/tini /usr/bin/tini
 
 WORKDIR /app
 
-RUN --mount=type=cache,target=/root/.npm \
-    NPM_CONFIG_UPDATE_NOTIFIER=false npm install -g npm@latest
+# The app stays root-owned and read-only, only the data directory is writable
+COPY --from=builder --exclude=data --chmod=u=rwX,go=rX /build/dist/ /app
+COPY --from=builder --chown=1000:1000 /build/dist/data/ /app/data/
 
-COPY --from=builder --chown=node:node /build/dist/ /app
-COPY --chmod=u=rwx,go=rx ./entrypoint.sh /entrypoint.sh
+USER 1000:1000
 
 EXPOSE 3000
 
 VOLUME /app/data
 
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["npm", "run", "prod"]
+# -s keeps zombie reaping working when Docker's --init runs as PID 1
+ENTRYPOINT ["/usr/bin/tini", "-s", "--"]
+CMD ["node", "--enable-source-maps", "--disable-warning=ExperimentalWarning", "./dist/bin/server.js"]
