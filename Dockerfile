@@ -1,4 +1,4 @@
-FROM node:24-trixie-slim AS builder
+FROM node:26-trixie-slim AS builder
 
 WORKDIR /build
 
@@ -27,7 +27,7 @@ RUN npm run test
 RUN --mount=type=cache,target=/root/.npm \
     npm run build:release
 
-FROM node:24-trixie-slim AS app
+FROM node:26-trixie-slim AS app
 
 RUN apt update \
  && DEBIAN_FRONTEND=noninteractive apt upgrade -y \

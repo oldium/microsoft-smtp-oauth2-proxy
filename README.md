@@ -77,7 +77,7 @@ Dark mode is supported 🎉.
 
 ## Quick Start
 
-This project is developed with Node.js version 24, Next.js 15.5 and React 19.1.
+This project is developed with Node.js version 26, Next.js 16.4 and React 19.3.
 It uses custom entrypoint to start both the SMTP server and the web server.
 
 First, install the dependencies:

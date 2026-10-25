@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "@types/lodash": "^4.17.27",
-    "@types/node": "^24.19.2",
+    "@types/node": "^26.6.5",
     "cross-env": "^10.1.0",
     "selfsigned": "^5.5.0",
     "typescript": "^7.0.2"
