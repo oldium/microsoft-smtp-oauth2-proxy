@@ -22,6 +22,15 @@ export default () => {
             "@ms-smtp/server",
         ],
         outputFileTracingRoot: fsExtra.pathExistsSync(path.join(currentDirectory, "package-lock.json")) ? currentDirectory : undefined,
+        // No next/image in the app, so neither the optimizer nor sharp is needed
+        images: {
+            unoptimized: true,
+            // Even unoptimized, /_next/image requests create the unused image cache in .next/cache
+            maximumDiskCacheSize: 0,
+        },
+        outputFileTracingExcludes: {
+            "*": ["**/node_modules/sharp/**/*", "**/node_modules/@img/**/*"],
+        },
         allowedDevOrigins: [
             "127.0.0.1",
             "[::1]"
