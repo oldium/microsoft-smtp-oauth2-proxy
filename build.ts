@@ -216,5 +216,15 @@ for (const file of binFiles) {
     execSync(`node ./install.ts ./build ./dist/bin/${ file } ./dist`, { stdio: 'inherit' });
 }
 
+// Ship source maps of the shipped files only, the traces leave them out
+for (const entry of await fs.readdir('dist', { recursive: true, withFileTypes: true })) {
+    if (entry.isFile() && /\.[cm]?js$/.test(entry.name)) {
+        const file = path.relative('dist', path.join(entry.parentPath, entry.name));
+        if (await fsExtra.pathExists(`build/${ file }.map`)) {
+            await fs.copyFile(`build/${ file }.map`, `dist/${ file }.map`);
+        }
+    }
+}
+
 // Create file env with production environment variables
 await fs.writeFile('./dist/.env', 'NODE_ENV=production\nNEXT_MANUAL_SIG_HANDLE=true\nNEXT_TELEMETRY_DISABLED=1\n');

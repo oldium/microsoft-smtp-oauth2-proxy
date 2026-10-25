@@ -24,8 +24,11 @@ if (rootDir) {
 
 try {
     // Trace dependencies of the provided file
-    const { fileList } = await nodeFileTrace([serverFile],
-        { conditions: ['node', 'production'] });
+    const { fileList } = await nodeFileTrace([serverFile], {
+        conditions: ['node', 'production'],
+        // The standalone output already has Next's runtime, tracing it again adds dev bundles and source maps
+        ignore: (file) => file.replaceAll("\\", "/").startsWith("node_modules/next/"),
+    });
 
     // Resolve absolute paths to avoid nested copying
     const targetDirAbsolute = path.resolve(targetDir);
