@@ -1,6 +1,9 @@
 import { DatabaseSync, type StatementSync } from "node:sqlite";
+import { existsSync } from "node:fs";
+import path from "node:path";
 import _ from "lodash";
 import { getConfig } from "./config.ts";
+import { Access, requireAccess } from "./fs.ts";
 
 export type MicrosoftOAuthCredentials = {
     cache: string,
@@ -67,6 +70,11 @@ export async function getDb(): Promise<DbState> {
     let db: DbState | undefined = globalThis.__db__;
     if (!db) {
         const filename = config.db;
+        // SQLite creates its journal next to the database, so the directory must be writable too
+        await requireAccess("Database directory", path.dirname(filename), Access.Writable);
+        if (existsSync(filename)) {
+            await requireAccess("Database file", filename, Access.Writable);
+        }
         const connection = new DatabaseSync(filename);
 
         const versionResult = connection.prepare(`PRAGMA user_version;`).get() as { user_version: number } | undefined;

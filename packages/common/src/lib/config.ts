@@ -7,7 +7,7 @@ import yn from "yn";
 import path from "node:path";
 import dns from "node:dns/promises";
 import { isIP } from "node:net";
-import { resolvePath } from "./fs.ts";
+import { Access, requireAccess, resolvePath } from "./fs.ts";
 import { parseHumanJsonArray, parseHumanJsonObject } from "./json.ts";
 import proxyAddr from "proxy-addr";
 
@@ -130,6 +130,10 @@ async function computeConfig() {
         await fs.mkdir(path.dirname(smtpKeyFile!), { recursive: true });
         await fs.writeFile(smtpKeyFile!, pems.private);
         await fs.writeFile(smtpCertFile!, pems.cert);
+    }
+    if (withCertificates) {
+        await requireAccess("SMTP key file", smtpKeyFile!, Access.ReadOnly);
+        await requireAccess("SMTP certificate file", smtpCertFile!, Access.ReadOnly);
     }
     const smtpCertificate: Certificate =
         withCertificates
@@ -256,6 +260,10 @@ async function computeConfig() {
         const pems = await (await import("selfsigned")).generate(attrs, { keySize: 2048 });
         await fs.writeFile(httpsKeyFile!, pems.private);
         await fs.writeFile(httpsCertFile!, pems.cert);
+    }
+    if (withHttps) {
+        await requireAccess("HTTPS key file", httpsKeyFile!, Access.ReadOnly);
+        await requireAccess("HTTPS certificate file", httpsCertFile!, Access.ReadOnly);
     }
     const httpsCertificate: Certificate =
         withHttps

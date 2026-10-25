@@ -378,7 +378,9 @@ The data volume must be writable and the certificate files must be readable by
 the user the container runs as. The `/app/data` directory in the image is owned
 by the default user `1000:1000`, and a new named volume, like `proxy-config` in
 the examples below, takes over its owner and permissions. For a bind-mounted
-directory see [Docker Compose](#docker-compose).
+directory see [Docker Compose](#docker-compose). When the application cannot
+access the database directory or file or the certificate files at start-up, it
+stops and logs their owner and mode.
 
 [tini]: https://github.com/krallin/tini
 
