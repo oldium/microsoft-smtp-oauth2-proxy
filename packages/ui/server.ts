@@ -146,6 +146,7 @@ try {
 } catch (err) {
     console.error(err);
     console.log("Cleaning up...");
+    process.exitCode = 1;
 } finally {
     // Wait for all to be settled
     await Promise.allSettled(listenPromises);
@@ -186,4 +187,4 @@ try {
 await endDb();
 
 console.log("Terminated");
-process.exit(0);
+process.exit();
